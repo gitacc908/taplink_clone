@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title_page %}{% endblock %}
+
+{% block style-libs %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+{% endblock %}
+
+{% block style %}
+{% endblock %}
+
+{% block content %}
+
+<input id="url" hidden type="text" data-url="{% url 'update_user' %}">
+    <div class="box__wrap">
+        <div class="form__box">
+            <form action="">
+                {% csrf_token %}
+                <div class="form__box-head">
+                    <h2 class="form__title">
+                        Профиль
+                    </h2>
+                    <a href="{% url 'logout' %}" class="form__reg form__sign-out">
+                        Выход
+                    </a>
+                </div>
+
+                <label class="form__input-wrap">
+                    <input style="display: inline-block;" disabled type="text" id="f_name" name="first_name" value="{{ object.first_name }}" class="form__input" placeholder="Введите новое имя" required>
+                    <i class="fa fa-pencil" style="font-size:24px; display: inline-block;" id="f_name_icon"></i>
+                </label>
+                <label class="form__input-wrap">
+                    <input id="l_name" name="last_name" disabled value="{{ object.last_name }}" type="text" class="form__input" placeholder="Введите новую фамилию" required>
+                    <i class="fa fa-pencil" style="font-size:24px; display: inline-flex;" id="l_name_icon"></i>
+                </label>
+
+                <button class="form__btn" type="submit">
+                    Сохранить изменения
+                </button>
+                <a href="{% url 'update_password' %}" class="sms__timer change__filed">
+                    Сменить пароль
+                </a>
+                <a href="{% url 'get_phone_for_update' %}" class="sms__timer change__filed">
+                    Сменить номер
+                </a>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/user_update.js' %}"></script>
+{% endblock %}

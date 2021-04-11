@@ -1,0 +1,6 @@
+Django==2.2
+django-environ==0.4.5
+pytz==2020.5
+sqlparse==0.4.1
+Pillow==8.1.0
+psycopg2
