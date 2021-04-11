@@ -43,7 +43,8 @@ class VerifyView(View):
 
     def get(self, request, *args, **kwargs):
         form = self.form_class()
-        return render(request, self.template_name)   
+        return render(request, self.template_name, 
+        {'phone': request.session['data']['phone']})   
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
@@ -185,10 +186,14 @@ class VerifyPhoneNumberForUpdate(View):
             code = request.session['reset_phone']['code']
             phone = request.session['reset_phone']['phone']
             if typed_code == code:
-                user = CustomUser.objects.get(phone_number=request.session['reset_phone']['old_phone'])
-                user.phone_number = phone
-                user.save()
-                return redirect('get_profile', request.user.id)
+                try:
+                    user = CustomUser.objects.get(phone_number=request.session['reset_phone']['old_phone'])
+                except CustomUser.DoesNotExist:
+                    return HttpResponse("User with this phone doesn't exist!")
+                else:
+                    user.phone_number = phone
+                    user.save()
+                    return redirect('get_profile', request.user.id)
         return render(request, self.template_name, {'form':form})
 
 

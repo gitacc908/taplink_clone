@@ -97,8 +97,10 @@ target/
 
 # Custom gitignore
 apps/templates_app
+apps/users/migrations
 core/setting/.env
 core/setting/local.py
+assets/
 
 # IPython
 profile_default/
