@@ -101,6 +101,7 @@ apps/users/migrations
 core/setting/.env
 core/setting/local.py
 assets/
+templates/pages
 
 # IPython
 profile_default/
