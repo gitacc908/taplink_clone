@@ -10,8 +10,7 @@ from phonenumber_field.formfields import PhoneNumberField
 
 
 class CustomUserCreationForm(UserCreationForm):
-    # BIRTH_YEAR_CHOICES = [str(i) for i in range(1990, 2021)]
-    # date_of_birth = forms.DateField(widget=forms.SelectDateWidget(years=BIRTH_YEAR_CHOICES))
+
     class Meta(UserCreationForm):
         model = CustomUser
         fields = ('first_name', 'last_name')
@@ -64,8 +63,6 @@ class SetPasswordForm(forms.Form):
         password = self.cleaned_data["new_password1"]
         self.user.set_password(password)
         self.user.save()
-        if commit:
-            self.user.save()
         return self.user
 
 

@@ -1,8 +1,8 @@
 from django.urls import path
 from django.views.generic import TemplateView
-from .views import ( GetNumber, VerifyView, SignUpView, 
+from .views import ( GetNumber, VerifyCodeView, SignUpView, 
                     GetPhoneNumber, VerifyPhoneNumber, 
-                     ResetPassword, GetProfile, LoginView, GetPhoneForUpdate, 
+                     ResetPasswordView, GetProfile, LoginView, GetPhoneForUpdate, 
                     VerifyPhoneNumberForUpdate, ProfileUpdatePassord,
                     ProfileUpdateView)
 
@@ -10,13 +10,13 @@ from .views import ( GetNumber, VerifyView, SignUpView,
 urlpatterns = [
     # registration 
     path('signup/get_number/', GetNumber.as_view(), name='get_number'),
-    path('signup/verify/', VerifyView.as_view(), name='verify_view'),
+    path('signup/verify/', VerifyCodeView.as_view(), name='verify_view'),
     path('signup/register/', SignUpView.as_view(), name='signup'),
 
     # resetpassword
     path('reset/get_phone_number/', GetPhoneNumber.as_view(), name='get_phone_number'),
     path('reset/verify_phone_number/', VerifyPhoneNumber.as_view(), name='verify_phone_number'),
-    path('reset/reset_password/', ResetPassword.as_view(), name='reset_password'),
+    path('reset/reset_password/', ResetPasswordView.as_view(), name='reset_password'),
     
     # custom authentication
     path('accounts/login/', LoginView.as_view(), name='login'),
