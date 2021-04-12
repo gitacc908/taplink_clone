@@ -2,7 +2,7 @@ from django.urls import path
 from django.views.generic import TemplateView
 from .views import ( GetNumber, VerifyView, SignUpView, 
                     GetPhoneNumber, VerifyPhoneNumber, 
-                     ResetPassword, GetProfile, login_view, GetPhoneForUpdate, 
+                     ResetPassword, GetProfile, LoginView, GetPhoneForUpdate, 
                     VerifyPhoneNumberForUpdate, ProfileUpdatePassord,
                     ProfileUpdateView)
 
@@ -19,7 +19,7 @@ urlpatterns = [
     path('reset/reset_password/', ResetPassword.as_view(), name='reset_password'),
     
     # custom authentication
-    path('accounts/login/', login_view, name='login'),
+    path('accounts/login/', LoginView.as_view(), name='login'),
 
     # profile 
     path('profile/<int:pk>/', GetProfile.as_view(), name='get_profile'),

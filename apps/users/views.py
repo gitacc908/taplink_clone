@@ -1,8 +1,13 @@
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect, redirect
 
-from .forms import NumberForm, CodeForm, CustomUserCreationForm, SetPasswordForm
+from .forms import (
+    NumberForm, CodeForm, CustomUserCreationForm, 
+    SetPasswordForm, CustomUserChangeForm
+)
+
 from django.views.generic.edit import FormView
 from django.views.generic import UpdateView, DetailView
+from django.views.generic.edit import UpdateView
 from django.urls import reverse_lazy
 from .models import CustomUser
 from django.shortcuts import render, HttpResponse
@@ -14,6 +19,7 @@ from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import update_session_auth_hash
 import json
+from django.http import JsonResponse
 
 
 class GetNumber(FormView):
@@ -43,8 +49,7 @@ class VerifyView(View):
 
     def get(self, request, *args, **kwargs):
         form = self.form_class()
-        return render(request, self.template_name, 
-        {'phone': request.session['data']['phone']})   
+        return render(request, self.template_name, {'phone': request.session['data']['phone']})   
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
@@ -131,23 +136,46 @@ class ResetPassword(View):
             return redirect('index_page')
         return render(request, self.template_name, {'form':form})
 
+# fix 
+# class GetProfile(UpdateView):
+#     model = CustomUser
+#     form_class = CustomUserChangeForm
+#     template_name = 'profile/edit-profile.html'
+#     success_url = "index_page"
 
 class GetProfile(DetailView):
     model = CustomUser
     template_name = 'profile/edit-profile.html'
 
+    def post(self, request, *args, **kwargs):
+        form = CustomUserChangeForm(request.POST)
+        try:            
+            user = request.user
+        except:
+            return HttpResponse('user does not registered')
+            # return render(request, self.template_name, {'form': form})
+        else:
+            if form.is_valid():
+                new_form = form.instance.user = user        
+                new_form.save()
+                return redirect('get_profile', request.user.id)
+        return render(request, self.template_name, {'form': form})
 
-def login_view(request):
-    form = AuthenticationForm()
-    if request.method == 'POST':
-        form = AuthenticationForm(request.POST)
-        username = request.POST['username']
-        password = request.POST['password']
+
+class LoginView(FormView):
+    template_name = 'registration/login.html'
+    form_class = AuthenticationForm
+    success_url = reverse_lazy('index_page')
+
+    def form_valid(self,form):
+        form = self.form_class(self.request.POST)
+        username = self.request.POST['username']
+        password = self.request.POST['password']
         user = authenticate(username=username, password=password)
         if user:
-            login(request, user)
-            return redirect(reverse_lazy('index_page'))
-    return render(request, 'registration/login.html', {'form': form})
+            login(self.request, user)
+            return super().form_valid(form)
+        return render(request, 'registration/login.html', {'form': form})
 
 
 class GetPhoneForUpdate(FormView):#add mixins
@@ -177,7 +205,8 @@ class VerifyPhoneNumberForUpdate(View):
     def get(self, request, *args, **kwargs):
         form = self.form_class()
         return render(request, self.template_name, 
-        {'form': form, 'phone': self.request.session['reset_phone']['phone']})
+                    {'form': form, 
+                    'phone': self.request.session['reset_phone']['phone']})
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
@@ -187,7 +216,9 @@ class VerifyPhoneNumberForUpdate(View):
             phone = request.session['reset_phone']['phone']
             if typed_code == code:
                 try:
-                    user = CustomUser.objects.get(phone_number=request.session['reset_phone']['old_phone'])
+                    user = CustomUser.objects.get(
+                        phone_number=request.session['reset_phone']['old_phone']
+                    )
                 except CustomUser.DoesNotExist:
                     return HttpResponse("User with this phone doesn't exist!")
                 else:

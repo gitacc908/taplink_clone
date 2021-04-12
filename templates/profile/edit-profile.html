@@ -15,7 +15,7 @@
 <input id="url" hidden type="text" data-url="{% url 'update_user' %}">
     <div class="box__wrap">
         <div class="form__box">
-            <form action="">
+            <form method="post">
                 {% csrf_token %}
                 <div class="form__box-head">
                     <h2 class="form__title">
@@ -25,7 +25,6 @@
                         Выход
                     </a>
                 </div>
-
                 <label class="form__input-wrap">
                     <input style="display: inline-block;" disabled type="text" id="f_name" name="first_name" value="{{ object.first_name }}" class="form__input" placeholder="Введите новое имя" required>
                     <i class="fa fa-pencil" style="font-size:24px; display: inline-block;" id="f_name_icon"></i>
@@ -34,7 +33,6 @@
                     <input id="l_name" name="last_name" disabled value="{{ object.last_name }}" type="text" class="form__input" placeholder="Введите новую фамилию" required>
                     <i class="fa fa-pencil" style="font-size:24px; display: inline-flex;" id="l_name_icon"></i>
                 </label>
-
                 <button class="form__btn" type="submit">
                     Сохранить изменения
                 </button>

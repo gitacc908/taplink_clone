@@ -17,7 +17,7 @@
                     <h2 class="form__title">
                         Авторизация
                     </h2>
-                    <a href="#" class="form__reg">
+                    <a href="{% url 'get_number' %}" class="form__reg">
                         Регистрация
                     </a>
                 </div>
@@ -31,7 +31,7 @@
                 <button id="button_to_server" class="form__btn" type="submit">
                     Войти
                 </button>
-                <a href="#" class="forget__password">
+                <a href="{% url 'get_phone_number' %}" class="forget__password">
                     Забыли пароль?
                 </a>
             </form>

@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     #custom apps
     'apps.templates_app',
     'apps.users',
+    'apps.taplink',
 ]
 
 MIDDLEWARE = [
