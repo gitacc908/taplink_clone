@@ -3,7 +3,7 @@ from django.views.generic import TemplateView
 from .views import ( GetNumber, VerifyCodeView, SignUpView, 
                     GetPhoneNumber, VerifyPhoneNumber, 
                      ResetPasswordView, GetProfile, LoginView, GetPhoneForUpdate, 
-                    VerifyPhoneNumberForUpdate, ProfileUpdatePassord,
+                    VerifyPhoneNumberForUpdate, ProfileUpdatePassword,
                     ProfileUpdateView)
 
 
@@ -25,6 +25,6 @@ urlpatterns = [
     path('profile/<int:pk>/', GetProfile.as_view(), name='get_profile'),
     path('profile/get_phone_number/', GetPhoneForUpdate.as_view(), name='get_phone_for_update'),
     path('profile/verify_phone_number/', VerifyPhoneNumberForUpdate.as_view(), name='verify_phone_for_update'),
-    path('profile/update_password/', ProfileUpdatePassord.as_view(), name='update_password'),
+    path('profile/update_password/', ProfileUpdatePassword.as_view(), name='update_password'),
     path('profile/update_user/', ProfileUpdateView.as_view(), name='update_user'),
 ]

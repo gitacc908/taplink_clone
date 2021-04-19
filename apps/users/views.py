@@ -21,6 +21,8 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import update_session_auth_hash
 from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
+from django.urls import reverse
 
 
 class GetNumber(FormView):
@@ -32,7 +34,8 @@ class GetNumber(FormView):
         phone = str(form.cleaned_data['phone'])
         try:
             CustomUser.objects.get(phone_number=phone)
-            return HttpResponse('This phone is already registered!')
+            messages.error(self.request, 'This phone is already registered!')
+            return render(self.request, self.template_name, {'form': form})
         except CustomUser.DoesNotExist:
             new_user = {
                 'code': code_generate(),
@@ -59,14 +62,15 @@ class VerifyCodeView(View):
             if code == typed_code:
                 return redirect('signup')
             else:
-                return HttpResponse("Code doesn't match up!")
+                messages.error(request, "Code doesn't match up!")
+                return render(request, self.template_name, {'form': form})
         return render(request, self.template_name, {'form':form})
 
 
 class SignUpView(FormView):
     form_class = CustomUserCreationForm
     template_name = 'registration/registration.html'
-    success_url = reverse_lazy('index_page')
+    success_url = reverse_lazy('get_user_deck')
 
     def form_valid(self, form):
         phone_number = self.request.session['data']['phone']
@@ -87,13 +91,14 @@ class GetPhoneNumber(FormView):
         try:
             user = CustomUser.objects.get(phone_number=phone)
         except CustomUser.DoesNotExist:
-            return HttpResponse('User with this phone does not exist!')
+            messages.error(self.request, 'User with this phone does not exist!')
+            return render(self.request, self.template_name, {'form': form})
         else:
             reset = {
                 'code': code_generate(),
                 'phone': phone
             }
-            send_sms(code, user.phone_number)
+            send_sms(reset['code'], phone)
             self.request.session['reset_data'] = reset
             return super().form_valid(form)
 
@@ -113,6 +118,9 @@ class VerifyPhoneNumber(View):
             code = request.session['reset_data']['code']
             if typed_code == code:
                 return redirect('reset_password')
+            else:
+                messages.error(request, 'Code doesnt match up!')
+                return render(request, self.template_name, {'form':form})
         return render(request, self.template_name, {'form':form})
 
 
@@ -131,29 +139,25 @@ class ResetPasswordView(View):
             password = form.cleaned_data['new_password1']
             user.password = make_password(password)
             user.save(update_fields=['password'])
-            # make user login after password update
-            return redirect('index_page')
+            return redirect('get_user_deck')
         return render(request, self.template_name, {'form':form})
 
 
-class GetProfile(LoginRequiredMixin, DetailView):
+class GetProfile(LoginRequiredMixin, UpdateView):
     model = CustomUser
+    form_class = CustomUserChangeForm
     template_name = 'profile/edit-profile.html'
     login_url = 'login'
-
-    def post(self, request, *args, **kwargs):
-        form = CustomUserChangeForm(request.POST)          
-        if form.is_valid():
-            new_form = form.instance.user = request.user      
-            new_form.save()
-            return redirect('get_profile', request.user.id)
-        return render(request, self.template_name, {'form': form})
+    success_url = reverse_lazy('get_profile')
+    
+    def get_success_url(self):
+         return reverse('get_profile', kwargs={'pk': self.request.user.pk})
 
 
 class LoginView(FormView):
     template_name = 'registration/login.html'
     form_class = AuthenticationForm
-    success_url = reverse_lazy('index_page')
+    success_url = reverse_lazy('get_user_deck')
 
     def form_valid(self,form):
         form = self.form_class(self.request.POST)
@@ -175,20 +179,22 @@ class GetPhoneForUpdate(LoginRequiredMixin, FormView):
     def form_valid(self, form):
         phone = str(form.cleaned_data.get('phone'))
         if CustomUser.objects.filter(phone_number=phone).exists():
-            return HttpResponse('This phone number already exists!')
+            messages.error(self.request, 'This phone number already exists!')
+            return render(self.request, self.template_name, {'form':form})
         reset_phone = {
             'code': code_generate(),
             'phone': phone,
             'old_phone': str(self.request.user.phone_number)
         }
-        send_sms(code, phone)
+        send_sms(reset_phone['code'], reset_phone['old_phone'])
         self.request.session['reset_phone'] = reset_phone
         return super().form_valid(form)
 
 
-class VerifyPhoneNumberForUpdate(View):
+class VerifyPhoneNumberForUpdate(LoginRequiredMixin, View):
     form_class = CodeForm
     template_name = 'profile/change-number-submit.html'
+    login_url = 'login'
 
     def get(self, request, *args, **kwargs):
         form = self.form_class()
@@ -208,17 +214,20 @@ class VerifyPhoneNumberForUpdate(View):
                         phone_number=request.session['reset_phone']['old_phone']
                     )
                 except CustomUser.DoesNotExist:
-                    return HttpResponse("User with this phone doesn't exist!")
+                    messages.error(self.request, "User with this phone doesn't exist!")
+                    return render(request, self.template_name, {'form':form})
                 else:
                     user.phone_number = phone
                     user.save(update_fields=['phone_number'])
+                    messages.success(request, 'Phone number successfully updated.')
                     return redirect('get_profile', request.user.id)
         return render(request, self.template_name, {'form':form})
 
 
-class ProfileUpdatePassord(View):
+class ProfileUpdatePassword(LoginRequiredMixin, View):
     form_class = PasswordChangeForm
     template_name = 'profile/change-password.html'
+    login_url = 'login'
 
     def get(self, request, *args, **kwargs):
         form = self.form_class(request.user)

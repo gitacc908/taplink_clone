@@ -28,6 +28,20 @@
                     <input name="password" type="password" class="form__input" placeholder="Введите пароль" required>
                     <div class="form__eye"></div>
                 </label>
+                {% if form.errors %}
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <div class="alert alert-danger">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+            {% endif %}
                 <button id="button_to_server" class="form__btn" type="submit">
                     Войти
                 </button>

@@ -18,7 +18,6 @@ INSTALLED_APPS = [
     #conf apps
     'phonenumber_field',
     #custom apps
-    'apps.templates_app',
     'apps.users',
     'apps.taplink',
 ]
@@ -96,8 +95,8 @@ STATICFILES_FINDERS = (
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
-LOGIN_REDIRECT_URL = 'index_page'
-LOGOUT_REDIRECT_URL = 'index_page'
+LOGIN_REDIRECT_URL = 'get_user_deck'
+LOGOUT_REDIRECT_URL = 'login'
 
 try:
     from .local import *

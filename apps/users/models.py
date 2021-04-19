@@ -28,5 +28,8 @@ class CustomUser(PermissionsMixin, AbstractBaseUser):
     def __str__(self):
         return str(self.phone_number)
     
+    def get_full_name(self):
+        return f"{self.last_name}, {self.first_name}"
+
     def get_absolute_url(self):
         return reverse('get_profile', args=[self.id])

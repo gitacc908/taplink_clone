@@ -21,6 +21,13 @@
                 <label class="form__input-wrap">
                     <input id="phone_id" name="phone" type="text" class="form__input form__input-tel" required>
                 </label>
+                {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
                 <button id="button_to_server" class="form__btn" type="submit">
                     Сохранить изменения
                 </button>

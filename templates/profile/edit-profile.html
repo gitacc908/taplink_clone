@@ -26,13 +26,25 @@
                     </a>
                 </div>
                 <label class="form__input-wrap">
-                    <input style="display: inline-block;" disabled type="text" id="f_name" name="first_name" value="{{ object.first_name }}" class="form__input" placeholder="Введите новое имя" required>
-                    <i class="fa fa-pencil" style="font-size:24px; display: inline-block;" id="f_name_icon"></i>
+                    <input style="display: inline-block;"  type="text" id="f_name" name="first_name" value="{{ object.first_name }}" class="form__input" placeholder="Введите новое имя" required>
                 </label>
                 <label class="form__input-wrap">
-                    <input id="l_name" name="last_name" disabled value="{{ object.last_name }}" type="text" class="form__input" placeholder="Введите новую фамилию" required>
-                    <i class="fa fa-pencil" style="font-size:24px; display: inline-flex;" id="l_name_icon"></i>
+                    <input id="l_name" name="last_name"  value="{{ object.last_name }}" type="text" class="form__input" placeholder="Введите новую фамилию" required>
                 </label>
+                {% if form.errors %}
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <div class="alert alert-danger">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+            {% endif %}
                 <button class="form__btn" type="submit">
                     Сохранить изменения
                 </button>
@@ -49,5 +61,4 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'js/user_update.js' %}"></script>
 {% endblock %}

@@ -8,6 +8,8 @@ db.sqlite
 *.pyc
 apps/__pycache__
 apps/users/__pycache__
+apps/taplink/migrations
+
 __pycache__/
 local_settings.py
 db.sqlite3
