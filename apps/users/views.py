@@ -135,7 +135,10 @@ class ResetPasswordView(View):
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.user, request.POST)
         if form.is_valid():
-            user = get_object_or_404(CustomUser, phone_number=request.session['reset_data']['phone'])
+            user = get_object_or_404 (
+                        CustomUser, 
+                        phone_number=request.session['reset_data']['phone']
+                        )
             password = form.cleaned_data['new_password1']
             user.password = make_password(password)
             user.save(update_fields=['password'])

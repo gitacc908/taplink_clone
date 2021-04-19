@@ -19,7 +19,7 @@ urlpatterns = [
     path('reset/reset_password/', ResetPasswordView.as_view(), name='reset_password'),
     
     # custom authentication
-    path('accounts/login/', LoginView.as_view(), name='login'),
+    path('users/login/', LoginView.as_view(), name='login'),
 
     # profile 
     path('profile/<int:pk>/', GetProfile.as_view(), name='get_profile'),

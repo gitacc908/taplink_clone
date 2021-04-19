@@ -3,26 +3,27 @@ from django.http import HttpResponseNotFound
 from .models import Deck
 from .forms import AvatarForm, BodyForm
 from django.views import View
-from django.views.generic.edit import FormView
+from django.views.generic.edit import FormView, UpdateView
+from django.views.generic.detail import DetailView
+from django.views.generic.list import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.urls import reverse
 from django.core.exceptions import MultipleObjectsReturned
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.shortcuts import get_object_or_404
 
 
-class GetDeckWithLink(LoginRequiredMixin, View):
+class GetDeckWithLink(LoginRequiredMixin, DetailView): 
+    model = Deck
     template_name = 'taplink/index.html'
+    context_object_name = 'obj'
     login_url = 'login'
 
-    def get(self, request, *args, **kwargs):
-        try:
-            deck = Deck.objects.get(slug=kwargs['slug'])
-        except Deck.DoesNotExist:
-            return HttpResponseNotFound('<h1>Page not found</h1>')
-        else:
-            return render(request, self.template_name, {'obj': deck})
+    def get_object(self):
+        deck = get_object_or_404(Deck, slug=self.kwargs['slug'])
+        return deck
 
 
 class GetDeck(LoginRequiredMixin, View):
@@ -58,20 +59,17 @@ class GetDeck(LoginRequiredMixin, View):
             return HttpResponseNotFound('<h1>Page not found</h1>')
 
 
-class AddMessengerView(LoginRequiredMixin, View):
+class AddMessengerView(LoginRequiredMixin, UpdateView):
+    model = Deck
     template_name = 'taplink/index.html'
     login_url = 'login'
+    success_url = reverse_lazy('get_deck_with_link')
+    fields = ['telegram', 'whatsapp']
 
-    def post(self, request, *args, **kwargs):
-        try:
-            deck = Deck.objects.get(slug=kwargs['slug'])
-        except Deck.DoesNotExist:
-            return render(request, self.template_name)
-        else:
-            deck.telegram = request.POST['telegram']
-            deck.whatsapp = request.POST['whatsapp']
-            deck.save(update_fields=['telegram', 'whatsapp'])
-            return redirect(deck.get_absolute_url())
+    def get_success_url(self):
+         return reverse('get_deck_with_link', kwargs={
+                                            'slug': self.kwargs['slug']
+                                            })
 
 
 class AddAvatarView(LoginRequiredMixin, FormView):
@@ -85,7 +83,7 @@ class AddAvatarView(LoginRequiredMixin, FormView):
         try:
             deck = Deck.objects.get(slug=self.kwargs['slug'])
         except Deck.DoesNotExist:
-            return render(self.request, self.template_name)
+            raise Http404("Object does not exist!")
         else:
             form.instance = deck
             new_form = form.save(commit=False)
@@ -107,7 +105,7 @@ class AddDescriptionView(LoginRequiredMixin, FormView):
         try:
             deck = Deck.objects.get(slug=self.kwargs['slug'])
         except Deck.DoesNotExist:
-            return render(self.request, self.template_name)
+            raise Http404("Object does not exist!")
         else:
             form.instance = deck
             new_form = form.save(commit=False)
@@ -119,22 +117,12 @@ class AddDescriptionView(LoginRequiredMixin, FormView):
         return reverse('get_deck_with_link', kwargs={'slug': self.kwargs['slug']})
 
 
-class AddDeckLink(LoginRequiredMixin, View):
+class AddDeckLink(LoginRequiredMixin, UpdateView):
+    model = Deck
     template_name = 'taplink/index.html'
     login_url = 'login'
+    fields = ['slug']
+    success_url = reverse_lazy('get_deck_with_link')
 
-    def post(self, request, *args, **kwargs):
-        try:
-            deck = Deck.objects.get(slug=kwargs['slug'])
-        except Deck.DoesNotExist:
-            return render(request, self.template_name)
-        else:
-            try:
-                deck.slug = request.POST['link_input']
-            except IntegrityError:
-                messages.error(request, """Deck with this link already exists, 
-                                            try another one.""") # TODO display message in template 
-                return redirect(deck.get_absolute_url())        # PS.trying to figure out how to make it "not ugly" xD 
-            else:
-                deck.save(update_fields=['slug'])
-                return redirect(deck.get_absolute_url())
+    def get_success_url(self):
+        return reverse('get_deck_with_link', kwargs={'slug': self.object.slug})

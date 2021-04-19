@@ -10,11 +10,17 @@ class Deck(models.Model):
     Stores data for deck with 1 FK field, related to :model:`apps.users.CustomUser`
     """
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    slug = models.SlugField(max_length=255, unique=True, help_text='generated link for unique deck', blank=True)
-    icon = models.ImageField(upload_to='icons', verbose_name='image', null=True, blank=True)
-    body = models.TextField(verbose_name='description', null=True, blank=True)
-    whatsapp = models.URLField(max_length=255, verbose_name='whatsapp', null=True, blank=True)
-    telegram = models.URLField(max_length=255, verbose_name='telegram', null=True, blank=True)
+    slug = models.SlugField(max_length=255, unique=True, 
+                                help_text='generated link for unique deck', 
+                                blank=True)
+    icon = models.ImageField(upload_to='icons', verbose_name='image', 
+                                null=True, blank=True)
+    body = models.TextField(verbose_name='description', 
+                                null=True, blank=True)
+    whatsapp = models.URLField(max_length=255, verbose_name='whatsapp', 
+                                null=True, blank=True)
+    telegram = models.URLField(max_length=255, verbose_name='telegram', 
+                                null=True, blank=True)
 
     class Meta:
         verbose_name = 'Deck'
@@ -30,4 +36,5 @@ class Deck(models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
+        print('im here')
         return reverse('get_deck_with_link', kwargs={'slug':self.slug})
