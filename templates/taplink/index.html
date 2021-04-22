@@ -6,7 +6,6 @@
 {% block style-libs %}{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" href="{% static 'css/mystyle.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -339,7 +338,7 @@
                                  data-micromodal-close>
                             </div>
                         </div>
-                        <input name='link_input' type="text" class="controll__input"
+                        <input name='slug' type="text" class="controll__input"
                                placeholder="Установите желаемую ссылку например: HelloWorld">
 {#                        <p class="link__error">#}
 {#                            К сожалению данная ссылка уже занята#}
@@ -376,16 +375,20 @@
             // add social networks button
             $('#save_social_network_button').click(
                 function(){
-                    // making link for whatsapp                
+                    // making link for whatsapp  
                     var whatsapp = $('.iti__selected-dial-code').text() + $('#whatsapp_input_id').val().replace(/ /g,'');
                     var whatsapp_url = "https://wa.me/";
-                    var whatsapp_user_link = `${whatsapp_url}${whatsapp}`;    
+                    var whatsapp_user_link = `${whatsapp_url}${whatsapp}`; 
+                    if (whatsapp.length > 4) {
                     $('#whatsapp_input_id').val(whatsapp_user_link)
+                    }
                     // making link for telegram  
                     var telegram_url = "https://telegram.me/"
                     var telegram = $('#telegram_input_id').val()
                     var telegram_user_link = `${telegram_url}${telegram}`
+                    if (telegram.length > 0) {
                     $('#telegram_input_id').val(telegram_user_link)
+                    }
                 });
                     // add content button
                 $("#text_add_button").click(

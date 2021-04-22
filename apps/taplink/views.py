@@ -3,6 +3,7 @@ from django.http import HttpResponseNotFound
 from .models import Deck
 from .forms import AvatarForm, BodyForm
 from django.views import View
+from django.views.generic import CreateView
 from django.views.generic.edit import FormView, UpdateView
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
@@ -22,9 +23,8 @@ class GetDeckWithLink(LoginRequiredMixin, DetailView):
     login_url = 'login'
 
     def get_object(self):
-        deck = get_object_or_404(Deck, slug=self.kwargs['slug'])
-        return deck
-
+        return get_object_or_404(Deck, slug=self.kwargs['slug'])
+        
 
 class GetDeck(LoginRequiredMixin, View):
     template_name = 'taplink/index.html'
@@ -35,7 +35,7 @@ class GetDeck(LoginRequiredMixin, View):
             deck = Deck.objects.get(user=request.user)
             return render(request, self.template_name, {'obj': deck})
         except MultipleObjectsReturned:
-            decks = Deck.objects.all()
+            decks = Deck.objects.filter(user=request.user)
             paginator = Paginator(decks, 1)
             page_number = request.GET.get('page', 1)
             page = paginator.get_page(page_number)
@@ -59,6 +59,11 @@ class GetDeck(LoginRequiredMixin, View):
             return HttpResponseNotFound('<h1>Page not found</h1>')
 
 
+def create_deck(request):
+    deck = Deck.objects.create(user=request.user)
+    return redirect('get_deck_with_link', slug=deck.slug)
+
+
 class AddMessengerView(LoginRequiredMixin, UpdateView):
     model = Deck
     template_name = 'taplink/index.html'
@@ -67,9 +72,8 @@ class AddMessengerView(LoginRequiredMixin, UpdateView):
     fields = ['telegram', 'whatsapp']
 
     def get_success_url(self):
-         return reverse('get_deck_with_link', kwargs={
-                                            'slug': self.kwargs['slug']
-                                            })
+        return reverse('get_deck_with_link', kwargs={
+                                            'slug': self.kwargs['slug']})
 
 
 class AddAvatarView(LoginRequiredMixin, FormView):

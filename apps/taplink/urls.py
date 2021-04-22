@@ -1,7 +1,8 @@
 from django.urls import path
 from .views import ( GetDeck, AddMessengerView, 
                     AddAvatarView, AddDescriptionView, 
-                    GetDeckWithLink, AddDeckLink )
+                    GetDeckWithLink, AddDeckLink,
+                    create_deck)
 
 
 urlpatterns = [
@@ -12,6 +13,8 @@ urlpatterns = [
                                             name='get_user_deck'),
 
     # Taplink update methods
+    path('add_deck/', create_deck, 
+                                            name='add_deck'),
     path('add_messenger/<slug:slug>/', AddMessengerView.as_view(), 
                                             name='add_messenger'),
     path('add_avatar/<slug:slug>/', AddAvatarView.as_view(), 

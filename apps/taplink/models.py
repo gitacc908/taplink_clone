@@ -9,7 +9,7 @@ class Deck(models.Model):
     """
     Stores data for deck with 1 FK field, related to :model:`apps.users.CustomUser`
     """
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='deck')
     slug = models.SlugField(max_length=255, unique=True, 
                                 help_text='generated link for unique deck', 
                                 blank=True)
@@ -36,5 +36,4 @@ class Deck(models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        print('im here')
         return reverse('get_deck_with_link', kwargs={'slug':self.slug})

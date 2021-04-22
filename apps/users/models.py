@@ -33,3 +33,6 @@ class CustomUser(PermissionsMixin, AbstractBaseUser):
 
     def get_absolute_url(self):
         return reverse('get_profile', args=[self.id])
+
+    def has_child_instance(self):
+        return self.deck.exists()

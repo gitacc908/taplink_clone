@@ -5,7 +5,7 @@ from .forms import (
     NumberForm, CodeForm, CustomUserCreationForm, 
     SetPasswordForm, CustomUserChangeForm
 )
-
+from django.contrib.auth import authenticate, login
 from django.views.generic.edit import FormView
 from django.views.generic import UpdateView, DetailView
 from django.views.generic.edit import UpdateView
@@ -70,7 +70,7 @@ class VerifyCodeView(View):
 class SignUpView(FormView):
     form_class = CustomUserCreationForm
     template_name = 'registration/registration.html'
-    success_url = reverse_lazy('get_user_deck')
+    success_url = reverse_lazy('get_profile')
 
     def form_valid(self, form):
         phone_number = self.request.session['data']['phone']
@@ -78,7 +78,14 @@ class SignUpView(FormView):
         user.phone_number = phone_number
         user.is_active = True
         user.save()
+        user = authenticate(username=user.phone_number, password=form.cleaned_data['password1'])
+        if user is not None:
+            login(self.request, user)
         return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('get_profile', kwargs={
+                                            'pk': self.request.user.pk})
 
 
 class GetPhoneNumber(FormView):
@@ -109,7 +116,8 @@ class VerifyPhoneNumber(View):
 
     def get(self, request, *args, **kwargs):
         form = self.form_class()
-        return render(request, self.template_name, {'form': form})
+        return render(request, self.template_name, {'form': form, 
+                    'phone_number':request.session['reset_data']['phone']})
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
@@ -134,6 +142,7 @@ class ResetPasswordView(View):
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.user, request.POST)
+
         if form.is_valid():
             user = get_object_or_404 (
                         CustomUser, 
@@ -142,7 +151,10 @@ class ResetPasswordView(View):
             password = form.cleaned_data['new_password1']
             user.password = make_password(password)
             user.save(update_fields=['password'])
-            return redirect('get_user_deck')
+            user = authenticate(request, username=user.phone_number, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('get_profile', request.user.id)
         return render(request, self.template_name, {'form':form})
 
 
@@ -160,7 +172,7 @@ class GetProfile(LoginRequiredMixin, UpdateView):
 class LoginView(FormView):
     template_name = 'registration/login.html'
     form_class = AuthenticationForm
-    success_url = reverse_lazy('get_user_deck')
+    success_url = reverse_lazy('get_profile')
 
     def form_valid(self,form):
         form = self.form_class(self.request.POST)
@@ -171,6 +183,9 @@ class LoginView(FormView):
             login(self.request, user)
             return super().form_valid(form)
         return render(request, 'registration/login.html', {'form': form})
+    
+    def get_success_url(self):
+         return reverse('get_profile', kwargs={'pk': self.request.user.pk})
 
 
 class GetPhoneForUpdate(LoginRequiredMixin, FormView):

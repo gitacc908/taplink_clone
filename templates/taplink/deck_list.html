@@ -6,23 +6,8 @@
 {% block style-libs %}{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" href="{% static 'css/mystyle.css' %}">
-<style>
 
-.pagination {
-  display: inline-block;
-  margin-left: 490px;
-  margin-bottom: 2em;
-}
 
-.pagination li, a {
-  color: black;
-  float: left;
-  padding: 8px 16px;
-  text-decoration: none;
-}
-
-</style>
 {% endblock %}
 
 {% block content %}
@@ -108,7 +93,7 @@
                         </h5>
                         {% endif %}
                         <div class="taplink__social-media">
-                            {% if deck.telegram %}
+                            {% if deck.telegram|length > 0 %}
                             <a href="{{ deck.telegram }}" target="_blank" class="taplink__social-link taplink__telegram">
                                 telegram
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
@@ -124,7 +109,7 @@
                                 </svg>
                             </a>
                             {% endif %}
-                            {% if deck.whatsapp %}
+                            {% if deck.whatsapp|length > 0 %}
                             <a href="{{ deck.whatsapp }}" target="_blank" class="taplink__social-link taplink__whatsapp">
                                 whatsapp
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
@@ -357,7 +342,7 @@
                                  data-micromodal-close>
                             </div>
                         </div>
-                        <input name='link_input' type="text" class="controll__input"
+                        <input name='slug' type="text" class="controll__input"
                                placeholder="Установите желаемую ссылку например: HelloWorld">
 {#                        <p class="link__error">#}
 {#                            К сожалению данная ссылка уже занята#}
@@ -372,7 +357,7 @@
     </div>
     {% endfor %}
     {% if is_paginated %}
-    <nav aria-label="Page navigation example">
+    <nav aria-label="" class="nav-pagination">
         <ul class="pagination">
             <li class="page-item {% if not prev_url %}disabled{% endif %}">
                 <a class="page-link" href="{{ prev_url }}" aria-label="Previous">
@@ -426,13 +411,18 @@
                     // making link for whatsapp                
                     var whatsapp = $('.iti__selected-dial-code').text() + $('#whatsapp_input_id').val().replace(/ /g,'');
                     var whatsapp_url = "https://wa.me/";
-                    var whatsapp_user_link = `${whatsapp_url}${whatsapp}`;    
+                    var whatsapp_user_link = `${whatsapp_url}${whatsapp}`; 
+                    if (whatsapp.length > 4) {
                     $('#whatsapp_input_id').val(whatsapp_user_link)
+                    }
                     // making link for telegram  
                     var telegram_url = "https://telegram.me/"
                     var telegram = $('#telegram_input_id').val()
                     var telegram_user_link = `${telegram_url}${telegram}`
+                    if (telegram.length > 0) {
                     $('#telegram_input_id').val(telegram_user_link)
+                    }
+                    
                 });
                     // add content button
                 $("#text_add_button").click(
