@@ -22,15 +22,16 @@
 			</div>
 
 			<br>
-			<div class="box-element">
+			<div style="margin-bottom: 30px;" class="box-element">
 				<div class="cart-row">
 					<div style="flex:2"></div>
 					<div style="flex:2"><strong>Item</strong></div>
 					<div style="flex:1"><strong>Old Price</strong></div>
-					<div style="flex:1"><strong>Discount Price</strong></div>
+					<div style="flex:1"><strong>Disc Price</strong></div>
 					<div style="flex:1"><strong>Quantity</strong></div>
-					<div style="flex:1"><strong>Amount saved</strong></div>
+					<div style="flex:1"><strong>Benefit</strong></div>
 					<div style="flex:1"><strong>Total</strong></div>
+					<div style="flex:1"><strong></strong></div>
 				</div>
 				{% for item in order.products.all %}
 				<div class="cart-row">
@@ -38,26 +39,28 @@
 					<div style="flex:2"><p>{{item.product.title}}</p></div>
 					<div style="flex:1"><p>${{item.product.price|floatformat:2}}</p></div>
 					{% if item.product.discount_price %}
-					<div style="flex:1"><p>${{ item.product.discount_price }}</p>
+					<div style="flex:1"><p style="color: green;">${{ item.product.discount_price }}</p>
 						</div>
 					{% else %}
 					<div style="flex:1"><p>No discount</p>
 						</div>
 					{% endif %}
 					<div style="flex:1">
-						<p class="quantity">{{item.quantity}}</p>
+						<p class="quantity" style="margin-left: 20px;">{{item.quantity}}</p>
 						<!-- <div class="quantity">
 							<img data-product="{{item.product.id}}" data-action="add" class="chg-quantity update-cart" src="{% static  'images/arrow-up.png' %}">
 					
 							<img data-product="{{item.product.id}}" data-action="remove" class="chg-quantity update-cart" src="{% static  'images/arrow-down.png' %}">
 						</div> -->
 					</div>
-						<div style="flex:1"><p>${{ item.get_amount_saved }}</p>
+						<div style="flex:1"><p style="color: green;">${{ item.get_amount_saved }}</p>
 						</div>
 						<div style="flex:1"><p>${{item.get_final_price|floatformat:2}}</p>   
 						</div>
+						<div style="flex:1"><a href="{% url 'remove_from_cart' slug=item.product.slug %}" class="btn btn-outline-secondary add-btn update-cart">Delete</a>
+						</div>
 					</div>
-					<a href="{% url 'remove_from_cart' slug=item.product.slug %}" class="btn btn-outline-secondary add-btn update-cart">Delete</a>
+				
 					{% endfor %}
 				</div>
 			</div>

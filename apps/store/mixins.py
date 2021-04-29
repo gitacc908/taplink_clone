@@ -1,13 +1,14 @@
-from django.views.generic.detail import SingleObjectMixin
-from .models import Category
-from .models import Product
 from django.views.generic.base import View
+from .models import Customer
 
 
-class StoreViewMixin(object):
+class CustomerMixin(View):
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['categories'] = Category.objects.all()
-        context['products'] = Product.objects.all()
-        return context
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            customer = request.user.customer
+        except AttributeError:
+            device = request.COOKIES['device']
+            customer, created = Customer.objects.get_or_create(device=device)
+        self.customer = customer
+        return super().dispatch(request, *args, **kwargs)

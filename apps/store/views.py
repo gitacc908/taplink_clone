@@ -4,11 +4,12 @@ from django.views import View
 from django.views.generic.edit import FormView, UpdateView
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
+from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy, reverse
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseRedirect
-from .mixins import StoreViewMixin
+from .mixins import StoreViewMixin, CustomerMixin
 from .models import Product, Category, Order, CartProduct, Customer
 from .forms import ProductMultiModelForm, ProductForm, OrderForm
 from apps.store.payment.callback import result_handler
@@ -54,33 +55,28 @@ class ProductPageView(LoginRequiredMixin, ListView):
         return context
 
 
-class StoreView(StoreViewMixin, ListView):
+class StoreView(TemplateView):
     template_name = 'store.html'
 
-    def get_queryset(self):
-        categories = Category.objects.all()
-        products =  Product.objects.all()
-        queryset = list(chain(categories,products))
-        return queryset
+    def get_context_data(self, **kwargs):
+        context = super(StoreView, self).get_context_data(**kwargs)
+        context['categories'] = Category.objects.all()
+        context['products'] =  Product.objects.all()
+        return context
 
 
-class AddToCartView(View):# TODO: modify with mixins
+class AddToCartView(CustomerMixin, View):
 
     def get(self, request, *args, **kwargs):
-        try:
-            customer = request.user.customer
-        except AttributeError:
-            device = request.COOKIES['device']
-            customer, created = Customer.objects.get_or_create(device=device)
         product = get_object_or_404(Product, slug=kwargs['slug'])
         cart_product, created = CartProduct.objects.get_or_create(
-            product=product,
-            customer = customer,
-        )
+                                product=product,
+                                customer=self.customer,
+                            )
         try:
-            order = Order.objects.get(customer=customer, status='new')
+            order = Order.objects.get(customer=self.customer, status='new')
         except Order.DoesNotExist:
-            order = Order.objects.create(customer=customer)
+            order = Order.objects.create(customer=self.customer)
             order.products.add(cart_product)
             messages.info(request, 'Product was added and cart created.')
             return redirect('cart')
@@ -96,18 +92,12 @@ class AddToCartView(View):# TODO: modify with mixins
                 return redirect('cart')            
 
 
-class RemoveFromCartView(View):# TODO: modify with mixins
+class RemoveFromCartView(CustomerMixin, View):
         
     def get(self, request, *args, **kwargs):
-        try:
-            customer = request.user.customer
-        except AttributeError:
-            device = request.COOKIES['device']
-            customer, created = Customer.objects.get_or_create(device=device)
-
         product = get_object_or_404(Product, slug=kwargs['slug'])
         order_qs = Order.objects.filter(
-            customer=customer, 
+            customer=self.customer, 
             status = 'new'
         )
         if order_qs.exists():
@@ -115,7 +105,7 @@ class RemoveFromCartView(View):# TODO: modify with mixins
             if order.products.filter(product__slug=product.slug).exists():
                 cartproduct = CartProduct.objects.filter(
                     product=product,
-                    customer=customer,
+                    customer=self.customer,
                     ordered=False
                 )[0]
                 cartproduct.delete()
@@ -128,37 +118,23 @@ class RemoveFromCartView(View):# TODO: modify with mixins
             return HttpResponse('Your cart does not exist!')
 
 
-class CartView(View):# TODO: modify with mixins
+class CartView(CustomerMixin, DetailView):
+    model = Order
+    template_name = 'cart.html'
+
+    def get_object(self):
+        return get_object_or_404(Order, customer=self.customer)
+
+
+class CheckoutView(CustomerMixin, View):
 
     def get(self, request, *args, **kwargs):
-        try:
-            customer = request.user.customer
-        except AttributeError:
-            device = request.COOKIES['device']
-            customer, created = Customer.objects.get_or_create(device=device)
-        order = Order.objects.get(customer=customer)
-        return render(request, 'cart.html', {'order': order})
-
-
-class CheckoutView(StoreViewMixin, View):# TODO: modify with mixins
-
-    def get(self, request, *args, **kwargs):
-        try:
-            customer = request.user.customer
-        except AttributeError:
-            device = request.COOKIES['device']
-            customer, created = Customer.objects.get_or_create(device=device)
-        order = Order.objects.get(customer=customer)
+        order = Order.objects.get(customer=self.customer)
         return render(request, 'checkout.html', {'order': order})
 
     def post(self, request, *args, **kwargs):
-        try:
-            customer = request.user.customer
-        except AttributeError:
-            device = request.COOKIES['device']
-            customer, created = Customer.objects.get_or_create(device=device)
         form = OrderForm(request.POST)
-        order = get_object_or_404(Order, customer=customer)
+        order = get_object_or_404(Order, customer=self.customer)
         if form.is_valid():
             form.instance = order
             new_form = form.save(commit=False)
