@@ -1,7 +1,7 @@
 from django.shortcuts import render, HttpResponse, redirect 
 from django.http import HttpResponseNotFound
 from .models import Deck
-from .forms import AvatarForm, BodyForm
+from .forms import AvatarForm, BodyForm, MessengerForm
 from django.views import View
 from django.views.generic import CreateView
 from django.views.generic.edit import FormView, UpdateView
@@ -14,6 +14,7 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponseRedirect
 
 
 class GetDeckWithLink(LoginRequiredMixin, DetailView): 
@@ -64,12 +65,29 @@ def create_deck(request):
     return redirect('get_deck_with_link', slug=deck.slug)
 
 
-class AddMessengerView(LoginRequiredMixin, UpdateView):
-    model = Deck
+class AddMessengerView(LoginRequiredMixin, FormView):# MODIFIED
     template_name = 'taplink/index.html'
+    form_class = MessengerForm
     login_url = 'login'
     success_url = reverse_lazy('get_deck_with_link')
-    fields = ['telegram', 'whatsapp']
+
+    def form_valid(self, form):
+        telegram = form.cleaned_data['telegram']
+        whatsapp = form.cleaned_data['whatsapp']
+        deck = get_object_or_404(Deck, slug=self.kwargs['slug'])
+        form.instance = deck
+        new_form = form.save(commit=False)
+        if telegram and whatsapp:
+            new_form.telegram = telegram
+            new_form.whatsapp = whatsapp
+            new_form.save(update_fields=['telegram', 'whatsapp'])
+        elif telegram:
+            new_form.telegram = telegram
+            new_form.save(update_fields=['telegram'])
+        else:
+            new_form.whatsapp = whatsapp
+            new_form.save(update_fields=['whatsapp'])
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse('get_deck_with_link', kwargs={

@@ -1,0 +1,25 @@
+{% extends 'main.html' %}
+{% load static %}
+
+
+{% block content %}
+
+<div class="row">
+    <div class="col-lg-5">
+        <img class="thumbnail" src="{{product.main_image.url}}">
+    
+        <div class="box-element product">
+            <h6><strong>{{product.title}}</strong></h6>
+            <hr>
+            <p>{{ product.description }}</p>
+            <hr>
+            <a href="{% url 'add_to_cart' slug=product.slug %}" class="btn btn-outline-secondary add-btn update-cart">Add to Cart</a>
+            <a href="{% url 'add_to_cart' slug=product.slug %}" class="btn btn-outline-secondary add-btn update-cart">Buy</a>
+            <h5 style="display: inline-block;" ><strong>${{product.price}}</strong></h5>
+        </div>
+    </div>
+
+</div>
+
+  {% endblock %}
+  

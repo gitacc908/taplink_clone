@@ -1,0 +1,27 @@
+{% extends 'main.html' %}
+{% load static %}
+{% block content %}
+<div class="sidenav">
+	{% for category in categories %}
+	<a href="#about">{{ category }}</a>
+	{% endfor %}
+  </div>
+
+	<div class="row">
+		{% for product in products %}
+		<div class="col-sm-3">
+			<img class="thumbnail" src="{{product.main_image.url}}">
+			<div class="box-element product">
+				<h6><strong>{{product.title}}</strong></h6>
+				<hr>
+				<p>{{ product.description }}</p>
+				<hr>
+				<a href="{% url 'add_to_cart' slug=product.slug %}" class="btn btn-outline-secondary add-btn update-cart">Add to Cart</a>
+				<a class="btn btn-outline-success" href="{% url 'product_detail' slug=product.slug %}">View</a>
+				<h5 style="display: inline-block;" ><strong>${{product.price}}</strong></h5>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+
+{% endblock content %}

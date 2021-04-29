@@ -14,8 +14,10 @@ from django.utils import timezone
 # Custom USER MODEL
 class CustomUser(PermissionsMixin, AbstractBaseUser):
     phone_number = PhoneNumberField(verbose_name='phone', unique=True)
-    first_name = models.CharField(verbose_name='first_name', max_length=255, null=True, blank=True)
-    last_name = models.CharField(verbose_name='last_name', max_length=255, null=True, blank=True)
+    first_name = models.CharField(verbose_name='first_name', max_length=255, 
+                                                        null=True, blank=True)
+    last_name = models.CharField(verbose_name='last_name', max_length=255, 
+                                                        null=True, blank=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)

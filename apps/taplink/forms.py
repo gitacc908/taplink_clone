@@ -12,3 +12,9 @@ class BodyForm(forms.ModelForm):
     class Meta:
         model = Deck
         fields = ['body',]
+
+
+class MessengerForm(forms.ModelForm):
+    class Meta:
+        model = Deck
+        fields = ['telegram', 'whatsapp']

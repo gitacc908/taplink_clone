@@ -3,7 +3,6 @@ import logging
 
 import environ
 
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname((os.path.abspath(__file__)))))
 
 env = environ.Env()
@@ -15,9 +14,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #conf apps
+
+    # conf apps
     'phonenumber_field',
-    #custom apps
+    'crispy_forms',
+
+    # custom apps
     'apps.users',
     'apps.taplink',
     'apps.store',
@@ -87,6 +89,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'assets'),
+    os.path.join(BASE_DIR, 'apps/store/css')
 )
 
 STATICFILES_FINDERS = (
@@ -98,6 +101,8 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 LOGIN_REDIRECT_URL = 'get_user_deck'
 LOGOUT_REDIRECT_URL = 'login'
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 try:
     from .local import *
