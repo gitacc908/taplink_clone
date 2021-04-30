@@ -9,7 +9,6 @@
 				<br>
 				<br>
 			</div>
-
 			<br>
             <h1>Created products</h1>
 			<div class="box-element">
@@ -27,11 +26,6 @@
 					<div style="flex:1"><p>${{item.price|floatformat:2}}</p></div>
 					<div style="flex:1">
 						<p class="quantity">{{item.quantity}}</p>
-						<!-- <div class="quantity">
-							<img data-product="{{item.product.id}}" data-action="add" class="chg-quantity update-cart" src="{% static  'images/arrow-up.png' %}">
-					
-							<img data-product="{{item.product.id}}" data-action="remove" class="chg-quantity update-cart" src="{% static  'images/arrow-down.png' %}">
-						</div> -->
 					</div>
                     <div style="flex:1">    <p class="quantity">{{item.category}}</p>
                         <a class="btn btn-outline-secondary add-btn update-cart">Delete</a></div>

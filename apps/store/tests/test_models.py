@@ -29,8 +29,6 @@ class TestCategoriesModel(TestCase):
         """
         Test Category model data insertion/types/field attributes
         """
-        self.assertTrue(isinstance(self.category, Category))
-        self.assertTrue(isinstance(self.user, User))
         self.assertEqual(self.category.title, 'pumpkins')
 
 
@@ -66,7 +64,6 @@ class TestProductsModel(TestCase):
         """
         Test Product model data insertion/types/field attributes
         """
-        self.assertTrue(isinstance(self.product, Product))
         self.assertEqual(self.product.title, 'product title')
         self.assertEqual(self.product.desctiption, 'some description')
         self.assertEqual(self.product.category, self.category)

@@ -1,7 +1,9 @@
+import random
 from django.utils import timezone
 from django.db import models
-from django.utils.crypto import get_random_string
 from django.contrib.auth import get_user_model
+from django.urls import reverse
+
 
 User = get_user_model()
 
@@ -26,7 +28,7 @@ class Category(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = get_random_string(8, '0123456789')
+            self.slug = ''.join([random.choice('0123456789') for _ in range(8)])
         super().save(*args, **kwargs)
 
 
@@ -79,7 +81,7 @@ class Product(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = get_random_string(8, '0123456789')
+            self.slug = ''.join([random.choice('0123456789') for _ in range(8)])
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
@@ -105,7 +107,7 @@ class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE,
                                 related_name='product_images')
     image = models.ImageField(verbose_name='product image',
-                              upload_to='store_images', blank=True, null=True)
+                              upload_to='store_images/', blank=True, null=True)
 
     class Meta:
         verbose_name = 'Image'
@@ -123,7 +125,6 @@ class CartProduct(models.Model):
     product = models.ForeignKey(Product, verbose_name='Cart Product',
                     on_delete=models.CASCADE, related_name='related_products')
     quantity = models.PositiveIntegerField(default=1, verbose_name='Quantity')
-    ordered = models.BooleanField(default=False)
 
     def __str__(self):
         return f'Cart Product: {self.product.title}, Quantity: {self.quantity}'
@@ -151,13 +152,13 @@ class Order(models.Model):
     """
     Stores data for order model with cart credentials.
     """
-    STATUS_NEW = 'new'
-    STATUS_IN_PROGRESS = 'in_progress'
-    STATUS_READY = 'is_ready'
-    STATUS_COMPLETED = 'completed'
+    STATUS_NEW = 0
+    STATUS_IN_PROGRESS = 1
+    STATUS_READY = 2
+    STATUS_COMPLETED = 3
 
-    PURCHASE_BY_CARD = 'card'
-    PURCHASE_BY_CASH = 'cash'
+    PURCHASE_BY_CARD = 4
+    PURCHASE_BY_CASH = 5
 
     STATUS_CHOICES = (
         (STATUS_NEW, 'New order'),
@@ -170,32 +171,21 @@ class Order(models.Model):
         (PURCHASE_BY_CARD, 'Purchase by card'),
         (PURCHASE_BY_CASH, 'Purchase by cash')
     )
-    customer = models.ForeignKey(Customer,
-                             on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=255, verbose_name='First name')
     last_name = models.CharField(max_length=255, verbose_name='Last name')
     phone = models.CharField(max_length=20, verbose_name='Phone')
     products = models.ManyToManyField(CartProduct)
-    address = models.CharField(max_length=1024, verbose_name='Address',
-                               null=True, blank=True)
-    status = models.CharField(
-        max_length=100,
-        verbose_name='Order status',
-        choices=STATUS_CHOICES,
-        default=STATUS_NEW
-    )
-    buying_type = models.CharField(
-        max_length=100,
-        verbose_name='Purchase type',
-        choices=BUYING_TYPE_CHOICES,
-        default=PURCHASE_BY_CARD
-    )
-    comment = models.TextField(verbose_name='Comment for order',
-                               null=True, blank=True)
+    address = models.CharField(max_length=1024, verbose_name='Address')
+    status = models.PositiveSmallIntegerField(verbose_name='Order status', 
+                                    choices=STATUS_CHOICES, default=STATUS_NEW)
+    buying_type = models.PositiveSmallIntegerField(verbose_name='Purchase type', 
+                        choices=BUYING_TYPE_CHOICES, default=PURCHASE_BY_CARD)
+    comment = models.TextField(verbose_name='Comment for order')
     created_at = models.DateTimeField(auto_now=True,
                                       verbose_name='Order created date')
-    ordered_date = models.DateField(verbose_name='Date of receipt of the order',
-                                  default=timezone.now)
+    ordered_date = models.DateTimeField(verbose_name='Date of receipt of the order',
+                                  auto_now=True)
 
     def __str__(self):
         if self.customer.device:
@@ -207,4 +197,4 @@ class Order(models.Model):
                     for cart_product in self.products.all()])
 
     def get_cart_items(self):
-        return sum([1 for item in self.products.all()])
+        return self.products.count()

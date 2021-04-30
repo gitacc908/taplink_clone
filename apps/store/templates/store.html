@@ -16,8 +16,8 @@
 				<hr>
 				<p>{{ product.description }}</p>
 				<hr>
-				<a href="{% url 'add_to_cart' slug=product.slug %}" class="btn btn-outline-secondary add-btn update-cart">Add to Cart</a>
-				<a class="btn btn-outline-success" href="{% url 'product_detail' slug=product.slug %}">View</a>
+				<a href="{{ product.get_add_to_cart_url }}" class="btn btn-outline-secondary add-btn update-cart">Add to Cart</a>
+				<a class="btn btn-outline-success" href="{{ product.get_absolute_url }}">View</a>
 				<h5 style="display: inline-block;" ><strong>${{product.price}}</strong></h5>
 			</div>
 		</div>

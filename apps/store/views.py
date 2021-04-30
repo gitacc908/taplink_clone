@@ -9,7 +9,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy, reverse
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseRedirect
-from .mixins import StoreViewMixin, CustomerMixin
+from .mixins import CustomerMixin
 from .models import Product, Category, Order, CartProduct, Customer
 from .forms import ProductMultiModelForm, ProductForm, OrderForm
 from apps.store.payment.callback import result_handler
@@ -71,10 +71,10 @@ class AddToCartView(CustomerMixin, View):
         product = get_object_or_404(Product, slug=kwargs['slug'])
         cart_product, created = CartProduct.objects.get_or_create(
                                 product=product,
-                                customer=self.customer,
+                                customer=self.customer
                             )
         try:
-            order = Order.objects.get(customer=self.customer, status='new')
+            order = Order.objects.get(customer=self.customer, status=0)
         except Order.DoesNotExist:
             order = Order.objects.create(customer=self.customer)
             order.products.add(cart_product)
@@ -83,7 +83,7 @@ class AddToCartView(CustomerMixin, View):
         else:
             if order.products.filter(product__slug=product.slug).exists():
                 cart_product.quantity += 1
-                cart_product.save()
+                cart_product.save(update_fields=['quantity'])
                 messages.info(request, 'Product amount increased.')
                 return redirect('cart')
             else:
@@ -98,15 +98,14 @@ class RemoveFromCartView(CustomerMixin, View):
         product = get_object_or_404(Product, slug=kwargs['slug'])
         order_qs = Order.objects.filter(
             customer=self.customer, 
-            status = 'new'
+            status=0
         )
         if order_qs.exists():
             order = order_qs[0]
             if order.products.filter(product__slug=product.slug).exists():
                 cartproduct = CartProduct.objects.filter(
                     product=product,
-                    customer=self.customer,
-                    ordered=False
+                    customer=self.customer
                 )[0]
                 cartproduct.delete()
                 messages.info(request, 'Product is removed from cart!')
@@ -121,9 +120,12 @@ class RemoveFromCartView(CustomerMixin, View):
 class CartView(CustomerMixin, DetailView):
     model = Order
     template_name = 'cart.html'
-
+    
     def get_object(self):
-        return get_object_or_404(Order, customer=self.customer)
+        order = Order.objects.prefetch_related('products').get(
+                                                        customer=self.customer
+                                                        )
+        return order
 
 
 class CheckoutView(CustomerMixin, View):
@@ -144,7 +146,6 @@ class CheckoutView(CustomerMixin, View):
             new_form.comment = form.cleaned_data['comment']
             new_form.address = form.cleaned_data['address']
             new_form.buying_type = form.cleaned_data['buying_type']
-            new_form.ordered_date = timezone.now()
             new_form.save()
             if new_form.buying_type == 'card':
                 payment_res = get_url(new_form, new_form.comment, request)

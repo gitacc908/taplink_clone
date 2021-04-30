@@ -52,7 +52,7 @@ class GetNumber(FormView):
             return super().form_valid(form)
 
 
-class VerifyCodeView(FormView):# MODIFIED
+class VerifyCodeView(FormView):
     form_class = CodeForm
     template_name = 'registration/registration-submit.html'
     success_url = reverse_lazy('signup')
@@ -71,7 +71,7 @@ class VerifyCodeView(FormView):# MODIFIED
             return render(self.request, self.template_name, {'form': form})
 
 
-class SignUpView(FormView):# MODIFIED
+class SignUpView(FormView):
     form_class = CustomUserCreationForm
     template_name = 'registration/registration.html'
     success_url = reverse_lazy('get_profile')
@@ -86,7 +86,7 @@ class SignUpView(FormView):# MODIFIED
             username=user.phone_number, 
             password=form.cleaned_data['password1']
             )
-        if user is not None:
+        if user:
             login(self.request, user)
         return super().form_valid(form)
 
@@ -120,7 +120,7 @@ class GetPhoneNumber(FormView):
             return super().form_valid(form)
 
 
-class VerifyPhoneNumber(FormView):# MODIFIED
+class VerifyPhoneNumber(FormView):
     form_class = CodeForm
     template_name = 'resetpassword/change_password_submit.html'
     success_url = reverse_lazy('reset_password')
@@ -160,7 +160,7 @@ class ResetPasswordView(View):
             user.save(update_fields=['password'])
             user = authenticate(request, username=user.phone_number, 
                                          password=password)
-            if user is not None:
+            if user:
                 login(request, user)
                 return redirect('get_profile', request.user.id)
         return render(request, self.template_name, {'form':form})
@@ -219,7 +219,7 @@ class GetPhoneForUpdate(LoginRequiredMixin, FormView):
         return super().form_valid(form)
 
 
-class VerifyPhoneNumberForUpdate(LoginRequiredMixin, FormView):# MODIFIED
+class VerifyPhoneNumberForUpdate(LoginRequiredMixin, FormView):
     form_class = CodeForm
     template_name = 'profile/change-number-submit.html'
     login_url = 'login'
