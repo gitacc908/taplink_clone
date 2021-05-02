@@ -86,7 +86,7 @@ class AddMessengerView(LoginRequiredMixin, FormView):
 
     def get_success_url(self):
         return reverse('get_deck_with_link', kwargs={
-                                            'slug': self.kwargs['slug']})
+                                                'slug': self.kwargs['slug']})
 
 
 class AddAvatarView(LoginRequiredMixin, FormView):

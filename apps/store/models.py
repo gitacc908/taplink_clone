@@ -13,10 +13,8 @@ class Category(models.Model):
     Stores data for category with 1 child, related to :model:`apps.store.Product`
     """
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.CharField(max_length=255,
-                             verbose_name='Name of the category')
-    slug = models.SlugField(unique=True,
-                            verbose_name='Unique link for category')
+    title = models.CharField(max_length=255, verbose_name='Name of the category')
+    slug = models.SlugField(unique=True, verbose_name='Unique link for category')
 
     class Meta:
         verbose_name = 'Category'
@@ -34,7 +32,7 @@ class Category(models.Model):
 
 class Customer(models.Model):
     user = models.OneToOneField(User, null=True, 
-                                blank=True, on_delete=models.CASCADE)
+                                        blank=True, on_delete=models.CASCADE)
     device = models.CharField(max_length=255, null=True, blank=True)
     
     def __str__(self):
@@ -52,22 +50,19 @@ class Product(models.Model):
     """
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE,
-                                 related_name='product')
+                                                        related_name='product')
     main_image = models.ImageField(verbose_name='main_image',
-                                   upload_to='store_images')
-    title = models.CharField(max_length=255,
-                             verbose_name='Title of the product')
+                                                     upload_to='store_images')
+    title = models.CharField(max_length=255, verbose_name='Title of the product')
     description = models.TextField(verbose_name='Description for the product')
     price = models.DecimalField(max_digits=9, decimal_places=2,
-                                verbose_name='Price')
+                                                        verbose_name='Price')
     discount_price = models.DecimalField(max_digits=9, decimal_places=2,
                                 verbose_name='Discount', null=True, blank=True)
-    slug = models.SlugField(unique=True,
-                            verbose_name='Unique link for product')
-    in_stock = models.BooleanField(default=False,
-                                   verbose_name='In stock')
-    quantity = models.PositiveIntegerField(default=1,
-                                           verbose_name='Product quantity')
+    slug = models.SlugField(unique=True, verbose_name='Unique link for product')
+    in_stock = models.BooleanField(default=False, verbose_name='In stock')
+    quantity = models.PositiveIntegerField(default=1, 
+                                                verbose_name='Product quantity')
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -85,19 +80,13 @@ class Product(models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return reverse("product_detail", kwargs={
-            "slug" : self.slug
-        })
+        return reverse("product_detail", kwargs={"slug" : self.slug})
 
     def get_add_to_cart_url(self):
-        return reverse("add_to_cart", kwargs={
-            "slug" : self.slug
-            })
+        return reverse("add_to_cart", kwargs={"slug" : self.slug})
 
     def get_remove_from_cart_url(self):
-        return reverse("remove_from_cart", kwargs={
-            "slug" : self.slug
-        })
+        return reverse("remove_from_cart", kwargs={"slug" : self.slug})
 
 
 class ProductImage(models.Model):

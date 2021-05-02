@@ -34,7 +34,7 @@ class AddProductView(LoginRequiredMixin, FormView):
         return super().form_valid(form)
 
 
-class ProductDetailView(DetailView):
+class ProductDetailView(CustomerMixin, DetailView):
     model = Product
     template_name = 'detail_product.html'
     
@@ -42,20 +42,18 @@ class ProductDetailView(DetailView):
         return get_object_or_404(Product, slug=self.kwargs['slug'])
 
 
-class ProductPageView(LoginRequiredMixin, ListView):
+class ProductPageView(LoginRequiredMixin, CustomerMixin, ListView):
     model = Product
     template_name = 'product_page.html'
     login_url = 'login'
 
     def get_context_data(self, **kwargs):
         context = super(ProductPageView, self).get_context_data(**kwargs)
-        context['products'] = Product.objects.filter(
-            owner=self.request.user
-        )
+        context['products'] = Product.objects.filter(owner=self.request.user)
         return context
 
 
-class StoreView(TemplateView):
+class StoreView(CustomerMixin, TemplateView):
     template_name = 'store.html'
 
     def get_context_data(self, **kwargs):
@@ -70,9 +68,9 @@ class AddToCartView(CustomerMixin, View):
     def get(self, request, *args, **kwargs):
         product = get_object_or_404(Product, slug=kwargs['slug'])
         cart_product, created = CartProduct.objects.get_or_create(
-                                product=product,
-                                customer=self.customer
-                            )
+                                                        product=product,
+                                                        customer=self.customer
+                                                        )
         try:
             order = Order.objects.get(customer=self.customer, status=0)
         except Order.DoesNotExist:
@@ -96,21 +94,17 @@ class RemoveFromCartView(CustomerMixin, View):
         
     def get(self, request, *args, **kwargs):
         product = get_object_or_404(Product, slug=kwargs['slug'])
-        order_qs = Order.objects.filter(
-            customer=self.customer, 
-            status=0
-        )
+        order_qs = Order.objects.filter(customer=self.customer, status=0)
         if order_qs.exists():
             order = order_qs[0]
             if order.products.filter(product__slug=product.slug).exists():
-                cartproduct = CartProduct.objects.filter(
-                    product=product,
-                    customer=self.customer
-                )[0]
+                cartproduct = CartProduct.objects.filter( 
+                                                        product=product, 
+                                                        customer=self.customer
+                                                        )[0]
                 cartproduct.delete()
                 messages.info(request, 'Product is removed from cart!')
                 return redirect('cart')
-                
             else:
                 return HttpResponse('Product is not in your cart!')
         else:
@@ -128,29 +122,31 @@ class CartView(CustomerMixin, DetailView):
         return order
 
 
-class CheckoutView(CustomerMixin, View):
+class CheckoutView(CustomerMixin, FormView):
+    form_class = OrderForm
+    template_name = 'checkout.html'
+    success_url = reverse_lazy('store')
+
+    def form_valid(self, form):
+        order = get_object_or_404(Order, customer=self.customer)
+        form.instance = order
+        new_form = form.save(commit=False)
+        new_form.first_name = form.cleaned_data['first_name']
+        new_form.last_name = form.cleaned_data['last_name']
+        new_form.phone = form.cleaned_data['phone']
+        new_form.comment = form.cleaned_data['comment']
+        new_form.address = form.cleaned_data['address']
+        new_form.buying_type = form.cleaned_data['buying_type']
+        new_form.save()
+        if new_form.buying_type == 4:
+            payment_res = get_url(new_form, new_form.comment, self.request)
+            result_handler(payment_res)
+        else:
+            return HttpResponse('Our manager will call ya!:)')
+        return super().form_valid(form)
+
+
+class PaymentResult(View):
 
     def get(self, request, *args, **kwargs):
-        order = Order.objects.get(customer=self.customer)
-        return render(request, 'checkout.html', {'order': order})
-
-    def post(self, request, *args, **kwargs):
-        form = OrderForm(request.POST)
-        order = get_object_or_404(Order, customer=self.customer)
-        if form.is_valid():
-            form.instance = order
-            new_form = form.save(commit=False)
-            new_form.first_name = form.cleaned_data['first_name']
-            new_form.last_name = form.cleaned_data['last_name']
-            new_form.phone = form.cleaned_data['phone']
-            new_form.comment = form.cleaned_data['comment']
-            new_form.address = form.cleaned_data['address']
-            new_form.buying_type = form.cleaned_data['buying_type']
-            new_form.save()
-            if new_form.buying_type == 'card':
-                payment_res = get_url(new_form, new_form.comment, request)
-                result_handler(payment_res)
-            else:
-                return HttpResponse('Our manager will call ya!:)')
-            return redirect(payment_url)
-        return render(request, 'checkout.html', {'form': form})
+        return render(request, 'payment_result.html')

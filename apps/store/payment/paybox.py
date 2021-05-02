@@ -11,6 +11,8 @@ CALLBACK_BASE_URL = "localhost:8000/"
 
 
 def get_url(purchase, description, request) -> str:
+    # pg_result_url = str(request.build_absolute_uri())
+    # pg_result_url = pg_result_url.replace(request.path_info, str(reverse_lazy('get_payment_response')))
     data = {
         "order": f"{purchase.id}",
         "amount": simplejson.dumps(purchase.get_total()),
