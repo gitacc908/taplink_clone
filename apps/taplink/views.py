@@ -39,78 +39,46 @@ def create_deck(request):
     return redirect('get_deck_with_link', slug=deck.slug)
 
 
-class AddMessengerView(LoginRequiredMixin, FormView):
-    template_name = 'taplink/index.html'
-    form_class = MessengerForm
+class DeckUpdateView(LoginRequiredMixin, View):
     login_url = 'login'
-    success_url = reverse_lazy('get_deck_with_link')
 
-    def form_valid(self, form):
-        telegram = form.cleaned_data['telegram']
-        whatsapp = form.cleaned_data['whatsapp']
-        deck = get_object_or_404(Deck, slug=self.kwargs['slug'])
-        form.instance = deck
-        new_form = form.save(commit=False)
-        if telegram and whatsapp:
-            new_form.telegram = telegram
-            new_form.whatsapp = whatsapp
-            new_form.save(update_fields=['telegram', 'whatsapp'])
-        elif telegram:
-            new_form.telegram = telegram
-            new_form.save(update_fields=['telegram'])
-        else:
-            new_form.whatsapp = whatsapp
-            new_form.save(update_fields=['whatsapp'])
-        return super().form_valid(form)
-
-    def get_success_url(self):
-        return reverse('get_deck_with_link', kwargs={
-                                                'slug': self.kwargs['slug']})
-
-
-class AddAvatarView(LoginRequiredMixin, FormView):
-    template_name = 'taplink/index.html'
-    form_class = AvatarForm
-    login_url = 'login'
-    success_url = reverse_lazy('get_deck_with_link')
-
-    def form_valid(self, form):
-        form = self.form_class(self.request.POST, self.request.FILES)
-        try:
-            deck = Deck.objects.get(slug=self.kwargs['slug'])
-        except Deck.DoesNotExist:
-            raise Http404("Object does not exist!")
-        else:
-            form.instance = deck
-            new_form = form.save(commit=False)
-            new_form.icon = form.cleaned_data['icon']
-            new_form.save(update_fields=['icon'])
-            return super().form_valid(form)
-
-    def get_success_url(self):
-        return reverse('get_deck_with_link', kwargs={'slug': self.kwargs['slug']})
-
-
-class AddDescriptionView(LoginRequiredMixin, FormView):
-    template_name = 'taplink/index.html'
-    login_url = 'login'
-    form_class = BodyForm
-    success_url = reverse_lazy('get_deck_with_link')
-
-    def form_valid(self, form):
-        try:
-            deck = Deck.objects.get(slug=self.kwargs['slug'])
-        except Deck.DoesNotExist:
-            raise Http404("Object does not exist!")
-        else:
-            form.instance = deck
-            new_form = form.save(commit=False)
-            new_form.body = form.cleaned_data['body']
-            new_form.save(update_fields=['body'])
-            return super().form_valid(form)
-
-    def get_success_url(self):
-        return reverse('get_deck_with_link', kwargs={'slug': self.kwargs['slug']})
+    def post(self, request, *args, **kwargs):
+        deck = get_object_or_404(Deck, slug=kwargs['slug'])
+        if 'avatar_submit' in request.POST:
+            form = AvatarForm(request.POST, request.FILES)
+            if form.is_valid():
+                form.instance = deck
+                new_form = form.save(commit=False)
+                new_form.icon = form.cleaned_data['icon']
+                new_form.save(update_fields=['icon'])
+                return redirect(deck.get_absolute_url())
+        elif 'description_submit' in request.POST:
+            form = BodyForm(request.POST)
+            if form.is_valid():
+                form.instance = deck
+                new_form = form.save(commit=False)
+                new_form.body = form.cleaned_data['body']
+                new_form.save(update_fields=['body'])
+                return redirect(deck.get_absolute_url())
+        elif 'messenger_submit' in request.POST:
+            form = MessengerForm(request.POST)
+            if form.is_valid():
+                form.instance = deck
+                new_form = form.save(commit=False)
+                telegram = form.cleaned_data['telegram']
+                whatsapp = form.cleaned_data['whatsapp']
+                if telegram and whatsapp:
+                    new_form.telegram = telegram
+                    new_form.whatsapp = whatsapp
+                    new_form.save(update_fields=['telegram', 'whatsapp'])
+                elif telegram:
+                    new_form.telegram = telegram
+                    new_form.save(update_fields=['telegram'])
+                else:
+                    new_form.whatsapp = whatsapp
+                    new_form.save(update_fields=['whatsapp'])
+                return redirect(deck.get_absolute_url())
+        return render(request, 'taplink/index.html', {'obj': deck})
 
 
 class AddDeckLink(LoginRequiredMixin, UpdateView):

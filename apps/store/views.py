@@ -16,6 +16,7 @@ from apps.store.payment.paybox import get_url
 from .forms import ProductMultiModelForm, OrderForm
 from .mixins import CustomerMixin
 from .models import (Product, Category, Order, CartProduct, ProductImage)
+from .choices import *
 
 
 class AddProductView(LoginRequiredMixin, FormView):
@@ -168,8 +169,8 @@ class CheckoutView(CustomerMixin, FormView):
         new_form.buying_type = form.cleaned_data['buying_type']
         new_form.save()
         if new_form.buying_type == PURCHASE_BY_CARD:
-            payment_res = get_url(new_form, new_form.comment, self.request)
-            result_handler(payment_res)
+            payment_url = get_url(new_form, self.request)
+            return redirect(payment_url)
         else:
             return HttpResponse('Our manager will call ya!:)')
         return super().form_valid(form)
@@ -178,4 +179,8 @@ class CheckoutView(CustomerMixin, FormView):
 class PaymentResult(View):
 
     def get(self, request, *args, **kwargs):
+        result_handler(responce)
         return render(request, 'payment_result.html')
+
+class PaymentResponce(View):
+    pass

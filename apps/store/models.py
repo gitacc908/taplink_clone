@@ -4,6 +4,9 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from autoslug import AutoSlugField
+from django.db.models.signals import post_save
+from django.dispatch import receiver 
+from .choices import *
 
 
 User = get_user_model()
@@ -135,25 +138,6 @@ class Order(models.Model):
     """
     Stores data for order model with cart credentials.
     """
-    STATUS_NEW = 0
-    STATUS_IN_PROGRESS = 1
-    STATUS_READY = 2
-    STATUS_COMPLETED = 3
-
-    PURCHASE_BY_CARD = 4
-    PURCHASE_BY_CASH = 5
-
-    STATUS_CHOICES = (
-        (STATUS_NEW, 'New order'),
-        (STATUS_IN_PROGRESS, 'In progress'),
-        (STATUS_READY, 'Ready'),
-        (STATUS_COMPLETED, 'Completed')
-    )
-
-    BUYING_TYPE_CHOICES = (
-        (PURCHASE_BY_CARD, 'Purchase by card'),
-        (PURCHASE_BY_CASH, 'Purchase by cash')
-    )
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=255, verbose_name='First name')
     last_name = models.CharField(max_length=255, verbose_name='Last name')
@@ -183,3 +167,10 @@ class Order(models.Model):
 
     def get_cart_items(self):
         return self.products.count()
+
+
+@receiver(post_save, sender=User)
+def create_customer(sender, instance, created, **kwargs):
+    if created:
+        Customer.objects.create(user=instance)
+    

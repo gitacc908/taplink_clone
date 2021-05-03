@@ -1,0 +1,19 @@
+STATUS_NEW = 0
+STATUS_IN_PROGRESS = 1
+STATUS_READY = 2
+STATUS_COMPLETED = 3
+
+PURCHASE_BY_CARD = 4
+PURCHASE_BY_CASH = 5
+
+STATUS_CHOICES = (
+    (STATUS_NEW, 'New order'),
+    (STATUS_IN_PROGRESS, 'In progress'),
+    (STATUS_READY, 'Ready'),
+    (STATUS_COMPLETED, 'Completed')
+)
+
+BUYING_TYPE_CHOICES = (
+    (PURCHASE_BY_CARD, 'Purchase by card'),
+    (PURCHASE_BY_CASH, 'Purchase by cash')
+)

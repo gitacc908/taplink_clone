@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 
 def result_handler(response: dict):#-> PaymentHistory:
     purchase_id = response['order']
-    purchase = get_object_or_404(Order, pk=purchase_id)
+    purchase = get_object_or_404(Order, pk=int(purchase_id))
 
     if response['status']['code'] != 'success':
         data = {

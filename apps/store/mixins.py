@@ -1,5 +1,6 @@
 from django.views.generic.base import View
 from .models import Customer, Order
+from .choices import *
 
 
 class CustomerMixin(View):
@@ -16,6 +17,6 @@ class CustomerMixin(View):
     def get_context_data(self, **kwargs):
         context = super(CustomerMixin, self).get_context_data(**kwargs)
         order, created = Order.objects.get_or_create(
-                            customer=self.customer, status=0)
+                            customer=self.customer, status=STATUS_NEW)
         context['order'] = order
         return context

@@ -22,8 +22,8 @@ urlpatterns = [
                                           name='remove_from_cart'), 
     # TODO: payment responce handling 
     # payment response 
-    path('api/v1/purchases/payment_response/', views.PaymentResult.as_view(), 
+    path('api/v1/purchases/payment_response/', views.PaymentResponce.as_view(), 
                                                name='get_payment_response'),
-    # path('v4/payments', views.PaymentPost.as_view(), 
-                                                    # name='payment_result'),                                                                                                       
+    path('user/checkout/', views.PaymentResult.as_view(), 
+                                                    name='payment_result'),                                                                                                       
 ]

@@ -216,7 +216,7 @@
         <div class="modal__overlay" tabindex="-1" data-micromodal-close>
             <div class="modal__container" role="dialog" aria-modal="true"
                  aria-labelledby="modal-1-title">
-                <form method="post" action="{% url 'add_avatar' slug=obj.slug %}" enctype="multipart/form-data">
+                <form method="post" action="{% url 'deck_update' slug=obj.slug %}" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="controll__block">
                         <div class="controll__block-head">
@@ -252,7 +252,7 @@
                                 Загрузить аватар
                             </label>
                         </div>
-                        <button type="submit" class="modal__avatar-save">
+                        <button type="submit" name='avatar_submit' class="modal__avatar-save">
                             Сохранить
                         </button>
                     </div>
@@ -264,7 +264,7 @@
         <div class="modal__overlay" tabindex="-1" data-micromodal-close>
             <div class="modal__container" role="dialog" aria-modal="true"
                  aria-labelledby="modal-1-title">
-                <form method="post" action="{% url 'add_messenger' slug=obj.slug %}">
+                <form method="post" action="{% url 'deck_update' slug=obj.slug %}">
                     {% csrf_token %}
                     <div class="controll__block">
                         <div class="controll__block-head">
@@ -289,7 +289,7 @@
                                 <input name="telegram" type="text" class=" messenger__input" size="20" id="telegram_input_id">
                             </div>
                         </div>
-                        <button id="save_social_network_button" type="submit" class="modal__avatar-save">
+                        <button id="save_social_network_button" name='messenger_submit' type="submit" class="modal__avatar-save">
                             Добавить блок
                         </button>
                     </div>
@@ -301,7 +301,7 @@
         <div class="modal__overlay" tabindex="-1" data-micromodal-close>
             <div class="modal__container" role="dialog" aria-modal="true"
                  aria-labelledby="modal-1-title">
-                <form action="{% url 'add_description' slug=obj.slug %}" method="post">
+                <form action="{% url 'deck_update' slug=obj.slug %}" method="post">
                     {% csrf_token %}
                     <div class="controll__block">
                         <div class="controll__block-head">
@@ -315,7 +315,7 @@
                         <input name="body" type="text" hidden id="text_input">
                         <div id="editor">
                         </div>
-                        <button id="text_add_button" type="submit" class="modal__avatar-save">
+                        <button id="text_add_button" name='description_submit' type="submit" class="modal__avatar-save">
                             Добавить блок
                         </button>
                     </div>
