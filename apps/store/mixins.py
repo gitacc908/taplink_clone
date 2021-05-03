@@ -15,7 +15,7 @@ class CustomerMixin(View):
     
     def get_context_data(self, **kwargs):
         context = super(CustomerMixin, self).get_context_data(**kwargs)
-        order, created = Order.objects.get_or_create(customer=self.customer, 
-                                                                    status=0)
+        order, created = Order.objects.get_or_create(
+                            customer=self.customer, status=0)
         context['order'] = order
         return context

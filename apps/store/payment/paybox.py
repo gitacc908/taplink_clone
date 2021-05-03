@@ -7,12 +7,11 @@ from django.urls import reverse_lazy, reverse
 
 
 BASE_URL = "https://api.paybox.money/"
-CALLBACK_BASE_URL = "localhost:8000/"
+CALLBACK_BASE_URL = reverse_lazy('get_payment_response')
 
 
 def get_url(purchase, description, request) -> str:
-    # pg_result_url = str(request.build_absolute_uri())
-    # pg_result_url = pg_result_url.replace(request.path_info, str(reverse_lazy('get_payment_response')))
+
     data = {
         "order": f"{purchase.id}",
         "amount": simplejson.dumps(purchase.get_total()),
@@ -46,25 +45,3 @@ def get_url(purchase, description, request) -> str:
     return data['payment_page_url']
 
 # TODO: IMITATE PAYBOX RESP WITH JSON
-# def get_payment_info(payment_id: str) -> dict:
-#     response = requests.get(BASE_URL + f"v4/payments/{payment_id}",
-#                             auth=('535456', 'LeFnP16MP6AU6YKc'),
-#                             headers={'X-Idempotency-Key': f'{str(uuid.uuid4())}'}
-#                             )
-#     if response.status_code != status.HTTP_200_OK:
-#         raise ValidationError({"message": "Ошибка при запросе PayBox " + str(response.status_code)})
-
-#     data = json.loads(response.content)
-
-#     return data
-
-
-# def cancel_payment(purchase):
-#     response = requests.post(BASE_URL + f"payments/{purchase.payment_id}/cancel",
-#                              json={},
-#                              auth=('535456', 'LeFnP16MP6AU6YKc'),
-#                              headers={'X-Idempotency-Key': f'{purchase.uuid}'}
-#                              )
-#     data = json.loads(response.content)
-
-#     return data.get('code', None)

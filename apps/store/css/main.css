@@ -2,6 +2,8 @@ body{
 	background-color: hsl(0, 0%, 98%);
 }
 
+	
+
 h1,h2,h3,h4,h5,h6{
 	color:hsl(0, 0%, 30%);
 }
@@ -208,20 +210,21 @@ form.search-form.has-categories-select {
 	height: 100%;
 }
 @media(max-width:576px) {
-	.search3.homepage2 {
-		height: fit-content;
-	}
-	.search3.homepage2 button{
-		padding: 0;
-		width: 18px;
-		height: 18px;
-	}
-	.my-box{
-		flex-direction: column;
-		align-items: center;
-		row-gap: 10px;
-	}
+.search3.homepage2 {
+	height: fit-content;
 }
+.search3.homepage2 button{
+	padding: 0;
+	width: 18px;
+	height: 18px;
+}
+.my-box{
+	flex-direction: column;
+	align-items: center;
+	row-gap: 10px;
+}
+}
+
 .prod_count {
 	color: red;
 }
@@ -255,4 +258,12 @@ form.search-form.has-categories-select {
 	font-size: 32px;
 	text-decoration: none;
 	padding: 1em 1em 1em 0.5em;
+}
+
+@media (min-width: 992px){
+.col-lg-3 {
+	-ms-flex: 0 0 25%;
+	flex: 0 0 25%;
+	max-width: 20%;
+	}
 }

@@ -1,21 +1,21 @@
-from django.utils import timezone
-from django.shortcuts import render, HttpResponse, redirect 
-from django.views import View
-from django.views.generic.edit import FormView, UpdateView
-from django.views.generic.detail import DetailView
-from django.views.generic.list import ListView
-from django.views.generic import TemplateView
+from django.shortcuts import render, HttpResponse, redirect
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy, reverse
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponseRedirect
-from .mixins import CustomerMixin
-from .models import Product, Category, Order, CartProduct, Customer
-from .forms import ProductMultiModelForm, ProductForm, OrderForm
+from django.shortcuts import render, HttpResponse, redirect
+from django.urls import reverse_lazy
+from django.views import View
+from django.views.generic import TemplateView
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import FormView, DeleteView
+from django.views.generic.list import ListView
+
 from apps.store.payment.callback import result_handler
 from apps.store.payment.paybox import get_url
-from itertools import chain
-from django.contrib import messages
+from .forms import ProductMultiModelForm, OrderForm
+from .mixins import CustomerMixin
+from .models import (Product, Category, Order, CartProduct, ProductImage)
 
 
 class AddProductView(LoginRequiredMixin, FormView):
@@ -34,22 +34,44 @@ class AddProductView(LoginRequiredMixin, FormView):
         return super().form_valid(form)
 
 
+class DeleteProductView(LoginRequiredMixin, CustomerMixin, DeleteView):
+    model = Product
+    success_url = reverse_lazy('product_page')
+    login_url = 'login'
+    template_name = 'admin_templates/product_confirm_delete.html'
+
+
 class ProductDetailView(CustomerMixin, DetailView):
     model = Product
     template_name = 'detail_product.html'
-    
+
     def get_object(self):
-        return get_object_or_404(Product, slug=self.kwargs['slug'])
+        self.product = get_object_or_404(Product, slug=self.kwargs['slug'])
+        return self.product
+
+    def get_context_data(self, **kwargs):
+        context = super(ProductDetailView, self).get_context_data(**kwargs)
+        context['images'] = ProductImage.objects.filter(product=self.product)
+        return context
 
 
 class ProductPageView(LoginRequiredMixin, CustomerMixin, ListView):
     model = Product
-    template_name = 'product_page.html'
+    template_name = 'admin_templates/product_page.html'
     login_url = 'login'
 
     def get_context_data(self, **kwargs):
         context = super(ProductPageView, self).get_context_data(**kwargs)
-        context['products'] = Product.objects.filter(owner=self.request.user)
+        search_query = self.request.GET.get('search', '')
+        if search_query:
+            context['products'] = Product.objects.filter(
+                Q(
+                    title__icontains=search_query)
+                | Q(
+                    description__icontains=search_query)
+            )
+        else:
+            context['products'] = Product.objects.filter(owner=self.request.user)
         return context
 
 
@@ -58,8 +80,14 @@ class StoreView(CustomerMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(StoreView, self).get_context_data(**kwargs)
+        search_query = self.request.GET.get('search', '')
+        if search_query:
+            context['products'] = Product.objects.filter(
+                Q(title__icontains=search_query)
+            )
+        else:
+            context['products'] = Product.objects.all()
         context['categories'] = Category.objects.all()
-        context['products'] =  Product.objects.all()
         return context
 
 
@@ -68,11 +96,11 @@ class AddToCartView(CustomerMixin, View):
     def get(self, request, *args, **kwargs):
         product = get_object_or_404(Product, slug=kwargs['slug'])
         cart_product, created = CartProduct.objects.get_or_create(
-                                                        product=product,
-                                                        customer=self.customer
-                                                        )
+            product=product,
+            customer=self.customer
+        )
         try:
-            order = Order.objects.get(customer=self.customer, status=0)
+            order = Order.objects.get(customer=self.customer, status=STATUS_NEW)
         except Order.DoesNotExist:
             order = Order.objects.create(customer=self.customer)
             order.products.add(cart_product)
@@ -87,21 +115,22 @@ class AddToCartView(CustomerMixin, View):
             else:
                 order.products.add(cart_product)
                 messages.info(request, 'Product was added.')
-                return redirect('cart')            
+                return redirect('cart')
 
 
 class RemoveFromCartView(CustomerMixin, View):
-        
+
     def get(self, request, *args, **kwargs):
         product = get_object_or_404(Product, slug=kwargs['slug'])
-        order_qs = Order.objects.filter(customer=self.customer, status=0)
+        order_qs = Order.objects.filter(customer=self.customer, 
+                                        status=STATUS_NEW)
         if order_qs.exists():
             order = order_qs[0]
             if order.products.filter(product__slug=product.slug).exists():
-                cartproduct = CartProduct.objects.filter( 
-                                                        product=product, 
-                                                        customer=self.customer
-                                                        )[0]
+                cartproduct = CartProduct.objects.filter(
+                    product=product,
+                    customer=self.customer
+                ).first()
                 cartproduct.delete()
                 messages.info(request, 'Product is removed from cart!')
                 return redirect('cart')
@@ -114,11 +143,11 @@ class RemoveFromCartView(CustomerMixin, View):
 class CartView(CustomerMixin, DetailView):
     model = Order
     template_name = 'cart.html'
-    
+
     def get_object(self):
         order = Order.objects.prefetch_related('products').get(
-                                                        customer=self.customer
-                                                        )
+            customer=self.customer
+        )
         return order
 
 
@@ -138,7 +167,7 @@ class CheckoutView(CustomerMixin, FormView):
         new_form.address = form.cleaned_data['address']
         new_form.buying_type = form.cleaned_data['buying_type']
         new_form.save()
-        if new_form.buying_type == 4:
+        if new_form.buying_type == PURCHASE_BY_CARD:
             payment_res = get_url(new_form, new_form.comment, self.request)
             result_handler(payment_res)
         else:

@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from autoslug import AutoSlugField
 
 
 User = get_user_model()
@@ -13,8 +14,9 @@ class Category(models.Model):
     Stores data for category with 1 child, related to :model:`apps.store.Product`
     """
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.CharField(max_length=255, verbose_name='Name of the category')
-    slug = models.SlugField(unique=True, verbose_name='Unique link for category')
+    title = models.CharField(max_length=255, 
+                             verbose_name='Name of the category')
+    slug = AutoSlugField(populate_from='title', unique=True)
 
     class Meta:
         verbose_name = 'Category'
@@ -24,17 +26,12 @@ class Category(models.Model):
     def __str__(self):
         return self.title
 
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = ''.join([random.choice('0123456789') for _ in range(8)])
-        super().save(*args, **kwargs)
-
 
 class Customer(models.Model):
-    user = models.OneToOneField(User, null=True, 
-                                        blank=True, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, null=True,
+                                blank=True, on_delete=models.CASCADE)
     device = models.CharField(max_length=255, null=True, blank=True)
-    
+
     def __str__(self):
         if self.user:
             return str(self.user.phone_number)
@@ -50,19 +47,20 @@ class Product(models.Model):
     """
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE,
-                                                        related_name='product')
+                                 related_name='product')
     main_image = models.ImageField(verbose_name='main_image',
-                                                     upload_to='store_images')
+                                   upload_to='store_images/')
     title = models.CharField(max_length=255, verbose_name='Title of the product')
     description = models.TextField(verbose_name='Description for the product')
-    price = models.DecimalField(max_digits=9, decimal_places=2,
-                                                        verbose_name='Price')
+    price = models.DecimalField(max_digits=9, decimal_places=2, 
+                                verbose_name='Price')
     discount_price = models.DecimalField(max_digits=9, decimal_places=2,
-                                verbose_name='Discount', null=True, blank=True)
-    slug = models.SlugField(unique=True, verbose_name='Unique link for product')
+                                         verbose_name='Discount', null=True, 
+                                         blank=True)
+    slug = AutoSlugField(populate_from='title', unique=True)
     in_stock = models.BooleanField(default=False, verbose_name='In stock')
-    quantity = models.PositiveIntegerField(default=1, 
-                                                verbose_name='Product quantity')
+    quantity = models.PositiveIntegerField(default=1,
+                                           verbose_name='Product quantity')
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -74,19 +72,14 @@ class Product(models.Model):
     def __str__(self):
         return f'Title: {self.title}, Owner: {self.owner}'
 
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = ''.join([random.choice('0123456789') for _ in range(8)])
-        super().save(*args, **kwargs)
-
     def get_absolute_url(self):
-        return reverse("product_detail", kwargs={"slug" : self.slug})
+        return reverse("product_detail", kwargs={"slug": self.slug})
 
     def get_add_to_cart_url(self):
-        return reverse("add_to_cart", kwargs={"slug" : self.slug})
+        return reverse("add_to_cart", kwargs={"slug": self.slug})
 
     def get_remove_from_cart_url(self):
-        return reverse("remove_from_cart", kwargs={"slug" : self.slug})
+        return reverse("remove_from_cart", kwargs={"slug": self.slug})
 
 
 class ProductImage(models.Model):
@@ -112,7 +105,8 @@ class CartProduct(models.Model):
     """
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, verbose_name='Cart Product',
-                    on_delete=models.CASCADE, related_name='related_products')
+                                on_delete=models.CASCADE, 
+                                related_name='related_products')
     quantity = models.PositiveIntegerField(default=1, verbose_name='Quantity')
 
     def __str__(self):
@@ -130,7 +124,7 @@ class CartProduct(models.Model):
         if self.product.discount_price:
             return self.get_total_item_price() - self.get_discount_item_price()
         return 'No discount'
-        
+
     def get_final_price(self):
         if self.product.discount_price:
             return self.get_discount_item_price()
@@ -166,23 +160,25 @@ class Order(models.Model):
     phone = models.CharField(max_length=20, verbose_name='Phone')
     products = models.ManyToManyField(CartProduct)
     address = models.CharField(max_length=1024, verbose_name='Address')
-    status = models.PositiveSmallIntegerField(verbose_name='Order status', 
-                                    choices=STATUS_CHOICES, default=STATUS_NEW)
-    buying_type = models.PositiveSmallIntegerField(verbose_name='Purchase type', 
-                        choices=BUYING_TYPE_CHOICES, default=PURCHASE_BY_CARD)
+    status = models.PositiveSmallIntegerField(verbose_name='Order status',
+                                              choices=STATUS_CHOICES, 
+                                              default=STATUS_NEW)
+    buying_type = models.PositiveSmallIntegerField(verbose_name='Purchase type',
+                                                   choices=BUYING_TYPE_CHOICES, 
+                                                   default=PURCHASE_BY_CARD)
     comment = models.TextField(verbose_name='Comment for order')
     created_at = models.DateTimeField(auto_now=True,
                                       verbose_name='Order created date')
     ordered_date = models.DateTimeField(verbose_name='Date of receipt of the order',
-                                  auto_now=True)
+                                        auto_now=True)
 
     def __str__(self):
         if self.customer.device:
             return f'Id: {self.id} Device: {self.customer.device}'
         return f'Id: {self.id}, Customer: {self.customer.user.phone_number}'
-    
+
     def get_total(self):
-        return sum([cart_product.get_final_price() 
+        return sum([cart_product.get_final_price()
                     for cart_product in self.products.all()])
 
     def get_cart_items(self):

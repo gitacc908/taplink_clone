@@ -33,27 +33,6 @@ class GetDeck(LoginRequiredMixin, ListView):
     login_url = 'login'
     paginate_by = 1
 
-    def get_context_data(self, **kwargs):
-        context = super(GetDeck, self).get_context_data(**kwargs)
-        decks = Deck.objects.filter(user=self.request.user)
-        paginator = Paginator(decks, self.paginate_by)
-        page_number = self.request.GET.get('page', 1)
-        page = paginator.get_page(page_number)
-        is_paginated = page.has_other_pages()
-        if page.has_previous():
-            prev_url = f'?page={page.previous_page_number()}'
-        else:
-            prev_url = ''
-        if page.has_next():
-            next_url = f'?page={page.next_page_number()}'
-        else:
-            next_url = ''
-        context['page_object'] = page
-        context['is_paginated'] = is_paginated
-        context['next_url'] = next_url
-        context['prev_url'] = prev_url
-        return context
-
 
 def create_deck(request):
     deck = Deck.objects.create(user=request.user)

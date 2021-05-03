@@ -15,11 +15,11 @@ urlpatterns = [
 
     # resetpassword
     path('reset/get_phone_number/', GetPhoneNumber.as_view(), 
-                                                    name='get_phone_number'),
+                                    name='get_phone_number'),
     path('reset/verify_phone_number/', VerifyPhoneNumber.as_view(), 
-                                                    name='verify_phone_number'),
+                                       name='verify_phone_number'),
     path('reset/reset_password/', ResetPasswordView.as_view(), 
-                                                        name='reset_password'),
+                                  name='reset_password'),
     
     # custom authentication
     path('users/login/', LoginView.as_view(), name='login'),
@@ -27,9 +27,9 @@ urlpatterns = [
     # profile 
     path('profile/<int:pk>/', GetProfile.as_view(), name='get_profile'),
     path('profile/get_phone_number/', GetPhoneForUpdate.as_view(), 
-                                                    name='get_phone_for_update'),
+                                      name='get_phone_for_update'),
     path('profile/verify_phone_number/', VerifyPhoneNumberForUpdate.as_view(), 
-                                                name='verify_phone_for_update'),
+                                         name='verify_phone_for_update'),
     path('profile/update_password/', ProfileUpdatePassword.as_view(), 
-                                                        name='update_password'),
+                                     name='update_password'),
 ]

@@ -3,9 +3,8 @@
 {% block content %}
 <div class="my-seacrh">
 	<div class="search3 homepage2">
-		<form method="get" action="/search" role="search" class="search-form  has-categories-select">
-			<input name="q" class="search-input" type="text" value="" placeholder="Search..." autocomplete="off">
-			<input type="hidden" name="post_type" value="product">
+		<form role="search" class="search-form  has-categories-select">
+			<input name="search" class="search-input" type="search" placeholder="Search..." autocomplete="off">
 			<button type="submit">
 			<svg xmlns="http://www.w3.org/2000/svg" height="136pt" version="1.1" viewBox="-1 0 136 136.21852"
 				width="136pt">
@@ -50,6 +49,7 @@
 			  </div>
 			{% else %}
 			<div class="style-1 price">
+				<br>
 				<ins>
 					<span class="amount">${{product.price}}</span>
 				  </ins>
