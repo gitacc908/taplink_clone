@@ -42,9 +42,6 @@ def get_url(purchase, request) -> str:
                              auth=(MERCHANT_ID, PAY_SECRET_KEY),
                              headers={'X-Idempotency-Key': f'{purchase.id}'}
                              )
-    if response.status_code != status.HTTP_201_CREATED:
-        raise ValidationError({"message": "Ошибка при запросе PayBox"})
-
     data = json.loads(response.content)
     return data['payment_page_url']
 
@@ -55,10 +52,6 @@ def get_payment_info(payment_id: str) -> dict:
                             headers={
                                 'X-Idempotency-Key': f'{str(uuid.uuid4())}'}
                             )
-    if response.status_code != status.HTTP_200_OK:
-        raise ValidationError(
-            {"message": "Ошибка при запросе PayBox " + str(response.status_code)})
-
     data = json.loads(response.content)
     return data
 
