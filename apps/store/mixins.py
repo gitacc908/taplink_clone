@@ -1,22 +1,14 @@
-from django.views.generic.base import View
-from .models import Customer, Order
-from .choices import *
+from django.views import View
+from .models import Order
+from .choices import STATUS_NEW
 
 
-class CustomerMixin(View):
+class CartMixin(View):
 
-    def dispatch(self, request, *args, **kwargs):
-        try:
-            customer = request.user.customer
-        except AttributeError:
-            device = request.COOKIES['device']
-            customer, created = Customer.objects.get_or_create(device=device)
-        self.customer = customer
-        return super().dispatch(request, *args, **kwargs)
-    
     def get_context_data(self, **kwargs):
-        context = super(CustomerMixin, self).get_context_data(**kwargs)
-        order, created = Order.objects.get_or_create(
-                            customer=self.customer, status=STATUS_NEW)
+        context = super().get_context_data(**kwargs)
+        order, created = (Order.objects.get_or_create(
+            customer=self.request.user,
+            status=STATUS_NEW))
         context['order'] = order
         return context

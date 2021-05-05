@@ -5,8 +5,12 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from autoslug import AutoSlugField
 from django.db.models.signals import post_save
-from django.dispatch import receiver 
-from .choices import *
+from django.dispatch import receiver
+from .choices import (
+    STATUS_NEW, STATUS_IN_PROGRESS, STATUS_READY, STATUS_COMPLETED,
+    PURCHASE_BY_CARD, PURCHASE_BY_CASH, STATUS_CHOICES,
+    BUYING_TYPE_CHOICES
+)
 
 
 User = get_user_model()
@@ -14,10 +18,11 @@ User = get_user_model()
 
 class Category(models.Model):
     """
-    Stores data for category with 1 child, related to :model:`apps.store.Product`
+    Stores data for category with 1 child,
+    related to :model:`apps.store.Product`
     """
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.CharField(max_length=255, 
+    title = models.CharField(max_length=255,
                              verbose_name='Name of the category')
     slug = AutoSlugField(populate_from='title', unique=True)
 
@@ -28,18 +33,6 @@ class Category(models.Model):
 
     def __str__(self):
         return self.title
-
-
-class Customer(models.Model):
-    user = models.OneToOneField(User, null=True,
-                                blank=True, on_delete=models.CASCADE)
-    device = models.CharField(max_length=255, null=True, blank=True)
-
-    def __str__(self):
-        if self.user:
-            return str(self.user.phone_number)
-        else:
-            return self.device
 
 
 class Product(models.Model):
@@ -53,12 +46,13 @@ class Product(models.Model):
                                  related_name='product')
     main_image = models.ImageField(verbose_name='main_image',
                                    upload_to='store_images/')
-    title = models.CharField(max_length=255, verbose_name='Title of the product')
+    title = models.CharField(max_length=255,
+                             verbose_name='Title of the product')
     description = models.TextField(verbose_name='Description for the product')
-    price = models.DecimalField(max_digits=9, decimal_places=2, 
+    price = models.DecimalField(max_digits=9, decimal_places=2,
                                 verbose_name='Price')
     discount_price = models.DecimalField(max_digits=9, decimal_places=2,
-                                         verbose_name='Discount', null=True, 
+                                         verbose_name='Discount', null=True,
                                          blank=True)
     slug = AutoSlugField(populate_from='title', unique=True)
     in_stock = models.BooleanField(default=False, verbose_name='In stock')
@@ -87,7 +81,8 @@ class Product(models.Model):
 
 class ProductImage(models.Model):
     """
-    Stores data for product image with 1 parent related to :model:`apps.store.Product`
+    Stores data for product image with 1 parent
+    related to :model:`apps.store.Product`
     """
     product = models.ForeignKey(Product, on_delete=models.CASCADE,
                                 related_name='product_images')
@@ -106,9 +101,9 @@ class CartProduct(models.Model):
     """
     Stores data with cart product cretendials.
     """
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    customer = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, verbose_name='Cart Product',
-                                on_delete=models.CASCADE, 
+                                on_delete=models.CASCADE,
                                 related_name='related_products')
     quantity = models.PositiveIntegerField(default=1, verbose_name='Quantity')
 
@@ -138,17 +133,17 @@ class Order(models.Model):
     """
     Stores data for order model with cart credentials.
     """
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    customer = models.ForeignKey(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=255, verbose_name='First name')
     last_name = models.CharField(max_length=255, verbose_name='Last name')
     phone = models.CharField(max_length=20, verbose_name='Phone')
     products = models.ManyToManyField(CartProduct)
     address = models.CharField(max_length=1024, verbose_name='Address')
     status = models.PositiveSmallIntegerField(verbose_name='Order status',
-                                              choices=STATUS_CHOICES, 
+                                              choices=STATUS_CHOICES,
                                               default=STATUS_NEW)
     buying_type = models.PositiveSmallIntegerField(verbose_name='Purchase type',
-                                                   choices=BUYING_TYPE_CHOICES, 
+                                                   choices=BUYING_TYPE_CHOICES,
                                                    default=PURCHASE_BY_CARD)
     comment = models.TextField(verbose_name='Comment for order')
     created_at = models.DateTimeField(auto_now=True,
@@ -157,9 +152,7 @@ class Order(models.Model):
                                         auto_now=True)
 
     def __str__(self):
-        if self.customer.device:
-            return f'Id: {self.id} Device: {self.customer.device}'
-        return f'Id: {self.id}, Customer: {self.customer.user.phone_number}'
+        return f'Id: {self.id}, Customer: {self.customer.phone_number}'
 
     def get_total(self):
         return sum([cart_product.get_final_price()
@@ -167,10 +160,3 @@ class Order(models.Model):
 
     def get_cart_items(self):
         return self.products.count()
-
-
-@receiver(post_save, sender=User)
-def create_customer(sender, instance, created, **kwargs):
-    if created:
-        Customer.objects.create(user=instance)
-    

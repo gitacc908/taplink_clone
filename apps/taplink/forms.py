@@ -1,17 +1,18 @@
-from django import forms 
+from django import forms
 from .models import Deck
+from betterforms.multiform import MultiModelForm
 
 
 class AvatarForm(forms.ModelForm):
     class Meta:
         model = Deck
-        fields = ['icon',]
+        fields = ['icon', ]
 
 
 class BodyForm(forms.ModelForm):
     class Meta:
         model = Deck
-        fields = ['body',]
+        fields = ['body', ]
 
 
 class MessengerForm(forms.ModelForm):

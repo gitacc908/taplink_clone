@@ -16,7 +16,7 @@ def send_sms(user_code, phone_number):
         body=user_code,
         from_=tw_number,
         to=phone_number
-)
+    )
 
 
 def code_generate():

@@ -14,12 +14,12 @@ from django.views.generic.list import ListView
 from apps.store.payment.callback import result_handler
 from apps.store.payment.paybox import get_url
 from .forms import ProductMultiModelForm, OrderForm
-from .mixins import CustomerMixin
 from .models import (Product, Category, Order, CartProduct, ProductImage)
-from .choices import *
+from .choices import STATUS_NEW, PURCHASE_BY_CARD
+from .mixins import CartMixin
 
 
-class AddProductView(LoginRequiredMixin, FormView):
+class AddProductView(LoginRequiredMixin, CartMixin, FormView):
     template_name = 'admin_templates/add_product.html'
     login_url = 'login'
     success_url = reverse_lazy('store')
@@ -35,16 +35,17 @@ class AddProductView(LoginRequiredMixin, FormView):
         return super().form_valid(form)
 
 
-class DeleteProductView(LoginRequiredMixin, CustomerMixin, DeleteView):
+class DeleteProductView(LoginRequiredMixin, CartMixin, DeleteView):
     model = Product
     success_url = reverse_lazy('product_page')
     login_url = 'login'
     template_name = 'admin_templates/product_confirm_delete.html'
 
 
-class ProductDetailView(CustomerMixin, DetailView):
+class ProductDetailView(LoginRequiredMixin, CartMixin, DetailView):
     model = Product
     template_name = 'detail_product.html'
+    login_url = 'login'
 
     def get_object(self):
         self.product = get_object_or_404(Product, slug=self.kwargs['slug'])
@@ -56,7 +57,7 @@ class ProductDetailView(CustomerMixin, DetailView):
         return context
 
 
-class ProductPageView(LoginRequiredMixin, CustomerMixin, ListView):
+class ProductPageView(LoginRequiredMixin, CartMixin, ListView):
     model = Product
     template_name = 'admin_templates/product_page.html'
     login_url = 'login'
@@ -65,19 +66,20 @@ class ProductPageView(LoginRequiredMixin, CustomerMixin, ListView):
         context = super(ProductPageView, self).get_context_data(**kwargs)
         search_query = self.request.GET.get('search', '')
         if search_query:
-            context['products'] = Product.objects.filter(
-                Q(
-                    title__icontains=search_query)
-                | Q(
-                    description__icontains=search_query)
-            )
+            context['products'] = (
+                Product.objects.filter(
+                    Q(title__icontains=search_query)
+                    | Q(description__icontains=search_query)
+                ))
         else:
-            context['products'] = Product.objects.filter(owner=self.request.user)
+            context['products'] = Product.objects.filter(
+                owner=self.request.user)
         return context
 
 
-class StoreView(CustomerMixin, TemplateView):
+class StoreView(LoginRequiredMixin, CartMixin, TemplateView):
     template_name = 'store.html'
+    login_url = 'login'
 
     def get_context_data(self, **kwargs):
         context = super(StoreView, self).get_context_data(**kwargs)
@@ -92,18 +94,20 @@ class StoreView(CustomerMixin, TemplateView):
         return context
 
 
-class AddToCartView(CustomerMixin, View):
+class AddToCartView(LoginRequiredMixin, View):
+    login_url = 'login'
 
     def get(self, request, *args, **kwargs):
         product = get_object_or_404(Product, slug=kwargs['slug'])
         cart_product, created = CartProduct.objects.get_or_create(
             product=product,
-            customer=self.customer
+            customer=request.user
         )
         try:
-            order = Order.objects.get(customer=self.customer, status=STATUS_NEW)
+            order = Order.objects.get(
+                customer=request.user, status=STATUS_NEW)
         except Order.DoesNotExist:
-            order = Order.objects.create(customer=self.customer)
+            order = Order.objects.create(customer=request.user)
             order.products.add(cart_product)
             messages.info(request, 'Product was added and cart created.')
             return redirect('cart')
@@ -119,18 +123,19 @@ class AddToCartView(CustomerMixin, View):
                 return redirect('cart')
 
 
-class RemoveFromCartView(CustomerMixin, View):
+class RemoveFromCartView(LoginRequiredMixin, View):
+    login_url = 'login'
 
     def get(self, request, *args, **kwargs):
         product = get_object_or_404(Product, slug=kwargs['slug'])
-        order_qs = Order.objects.filter(customer=self.customer, 
+        order_qs = Order.objects.filter(customer=request.user,
                                         status=STATUS_NEW)
         if order_qs.exists():
             order = order_qs[0]
             if order.products.filter(product__slug=product.slug).exists():
                 cartproduct = CartProduct.objects.filter(
                     product=product,
-                    customer=self.customer
+                    customer=request.user
                 ).first()
                 cartproduct.delete()
                 messages.info(request, 'Product is removed from cart!')
@@ -141,46 +146,46 @@ class RemoveFromCartView(CustomerMixin, View):
             return HttpResponse('Your cart does not exist!')
 
 
-class CartView(CustomerMixin, DetailView):
+class CartView(LoginRequiredMixin, CartMixin, DetailView):
     model = Order
     template_name = 'cart.html'
+    login_url = 'login'
 
     def get_object(self):
         order = Order.objects.prefetch_related('products').get(
-            customer=self.customer
+            customer=self.request.user
         )
         return order
 
 
-class CheckoutView(CustomerMixin, FormView):
+class CheckoutView(LoginRequiredMixin, CartMixin, FormView):
     form_class = OrderForm
     template_name = 'checkout.html'
     success_url = reverse_lazy('store')
+    login_url = 'login'
 
     def form_valid(self, form):
-        order = get_object_or_404(Order, customer=self.customer)
-        form.instance = order
-        new_form = form.save(commit=False)
-        new_form.first_name = form.cleaned_data['first_name']
-        new_form.last_name = form.cleaned_data['last_name']
-        new_form.phone = form.cleaned_data['phone']
-        new_form.comment = form.cleaned_data['comment']
-        new_form.address = form.cleaned_data['address']
-        new_form.buying_type = form.cleaned_data['buying_type']
-        new_form.save()
-        if new_form.buying_type == PURCHASE_BY_CARD:
-            payment_url = get_url(new_form, self.request)
+        order = get_object_or_404(Order, customer=self.request.user)
+        order.first_name = form.cleaned_data['first_name']
+        order.last_name = form.cleaned_data['last_name']
+        order.phone = form.cleaned_data['phone']
+        order.comment = form.cleaned_data['comment']
+        order.address = form.cleaned_data['address']
+        order.buying_type = form.cleaned_data['buying_type']
+        order.save()
+        if order.buying_type == PURCHASE_BY_CARD:
+            payment_url = get_url(order, self.request)
             return redirect(payment_url)
         else:
             return HttpResponse('Our manager will call ya!:)')
         return super().form_valid(form)
 
 
-class PaymentResult(View):
+class PaymentRedirect(LoginRequiredMixin, TemplateView):
+    login_url = 'login'
+    template_name = 'payment_result.html'
 
-    def get(self, request, *args, **kwargs):
-        result_handler(responce)
-        return render(request, 'payment_result.html')
-
-class PaymentResponce(View):
-    pass
+    def get_context_data(self, **kwargs):
+        context = super(PaymentResult, self).get_context_data(**kwargs)
+        context['payment_result'] = get_payment_info(responce)
+        return context

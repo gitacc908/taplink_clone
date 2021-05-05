@@ -1,9 +1,9 @@
 import json
 from django.shortcuts import (
-    render, HttpResponse, HttpResponseRedirect, redirect 
+    render, HttpResponse, HttpResponseRedirect, redirect
 )
 from .forms import (
-    NumberForm, CodeForm, CustomUserCreationForm, 
+    NumberForm, CodeForm, CustomUserCreationForm,
     SetPasswordForm, CustomUserChangeForm
 )
 from twilio.base.exceptions import TwilioRestException
@@ -45,8 +45,8 @@ class GetNumber(FormView):
                 'phone': phone
             }
             try:
-                send_sms(new_user['code'],new_user['phone'])
-                self.request.session['data'] = new_user 
+                send_sms(new_user['code'], new_user['phone'])
+                self.request.session['data'] = new_user
             except TwilioRestException:
                 return HttpResponse('Unauthorized!', status=401)
             return super().form_valid(form)
@@ -83,16 +83,16 @@ class SignUpView(FormView):
         user.is_active = True
         user.save()
         user = authenticate(
-            username=user.phone_number, 
+            username=user.phone_number,
             password=form.cleaned_data['password1']
-            )
+        )
         if user:
             login(self.request, user)
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('get_profile', kwargs={
-                                            'pk': self.request.user.pk})
+        return reverse('get_profile', kwargs={'pk':
+                                              self.request.user.pk})
 
 
 class GetPhoneNumber(FormView):
@@ -100,7 +100,7 @@ class GetPhoneNumber(FormView):
     template_name = 'resetpassword/change_password_with_number.html'
     success_url = reverse_lazy('verify_phone_number')
 
-    def form_valid(self,form):
+    def form_valid(self, form):
         phone = str(form.cleaned_data.get('phone'))
         try:
             user = CustomUser.objects.get(phone_number=phone)
@@ -136,7 +136,7 @@ class VerifyPhoneNumber(FormView):
             return super().form_valid(form)
         else:
             messages.error(self.request, 'Code doesnt match up!')
-            return render(self.request, self.template_name, {'form':form})
+            return render(self.request, self.template_name, {'form': form})
 
 
 class ResetPasswordView(View):
@@ -151,19 +151,19 @@ class ResetPasswordView(View):
         form = self.form_class(request.user, request.POST)
 
         if form.is_valid():
-            user = get_object_or_404 (
-                        CustomUser, 
-                        phone_number=request.session['reset_data']['phone']
-                        )
+            user = get_object_or_404(
+                CustomUser,
+                phone_number=request.session['reset_data']['phone']
+            )
             password = form.cleaned_data['new_password1']
             user.password = make_password(password)
             user.save(update_fields=['password'])
-            user = authenticate(request, username=user.phone_number, 
-                                         password=password)
+            user = authenticate(request, username=user.phone_number,
+                                password=password)
             if user:
                 login(request, user)
                 return redirect('get_profile', request.user.id)
-        return render(request, self.template_name, {'form':form})
+        return render(request, self.template_name, {'form': form})
 
 
 class GetProfile(LoginRequiredMixin, UpdateView):
@@ -172,9 +172,9 @@ class GetProfile(LoginRequiredMixin, UpdateView):
     template_name = 'profile/edit-profile.html'
     login_url = 'login'
     success_url = reverse_lazy('get_profile')
-    
+
     def get_success_url(self):
-         return reverse('get_profile', kwargs={'pk': self.request.user.pk})
+        return reverse('get_profile', kwargs={'pk': self.request.user.pk})
 
 
 class LoginView(FormView):
@@ -182,7 +182,7 @@ class LoginView(FormView):
     form_class = AuthenticationForm
     success_url = reverse_lazy('get_profile')
 
-    def form_valid(self,form):
+    def form_valid(self, form):
         username = form.cleaned_data['username']
         password = form.cleaned_data['password']
         user = authenticate(username=username, password=password)
@@ -190,9 +190,9 @@ class LoginView(FormView):
             login(self.request, user)
             return super().form_valid(form)
         return render(request, 'registration/login.html', {'form': form})
-    
+
     def get_success_url(self):
-         return reverse('get_profile', kwargs={'pk': self.request.user.pk})
+        return reverse('get_profile', kwargs={'pk': self.request.user.pk})
 
 
 class GetPhoneForUpdate(LoginRequiredMixin, FormView):
@@ -200,12 +200,12 @@ class GetPhoneForUpdate(LoginRequiredMixin, FormView):
     template_name = 'profile/change-number.html'
     success_url = reverse_lazy('verify_phone_for_update')
     login_url = 'login'
-    
+
     def form_valid(self, form):
         phone = str(form.cleaned_data.get('phone'))
         if CustomUser.objects.filter(phone_number=phone).exists():
             messages.error(self.request, 'This phone number already exists!')
-            return render(self.request, self.template_name, {'form':form})
+            return render(self.request, self.template_name, {'form': form})
         reset_phone = {
             'code': code_generate(),
             'phone': phone,
@@ -215,7 +215,7 @@ class GetPhoneForUpdate(LoginRequiredMixin, FormView):
             send_sms(reset_phone['code'], reset_phone['old_phone'])
             self.request.session['reset_phone'] = reset_phone
         except TwilioRestException:
-             return HttpResponse('Unauthorized!', status=401)
+            return HttpResponse('Unauthorized!', status=401)
         return super().form_valid(form)
 
 
@@ -236,23 +236,24 @@ class VerifyPhoneNumberForUpdate(LoginRequiredMixin, FormView):
         if typed_code == code:
             try:
                 user = CustomUser.objects.get(
-                phone_number=self.request.session['reset_phone']['old_phone']
+                    phone_number=self.request.session['reset_phone'] /
+                    ['old_phone']
                 )
             except CustomUser.DoesNotExist:
-                messages.error(self.request, 
-                                        "User with this phone doesn't exist!")
-                return render(self.request, self.template_name, {'form':form})
+                messages.error(self.request,
+                               "User with this phone doesn't exist!")
+                return render(self.request, self.template_name, {'form': form})
             else:
                 user.phone_number = phone
                 user.save(update_fields=['phone_number'])
-                messages.success(self.request, 
-                                        'Phone number successfully updated.')
+                messages.success(self.request,
+                                 'Phone number successfully updated.')
                 return super().form_valid(form)
         messages.error(self.request, 'Code does not match up!')
-        return render(self.request, self.template_name, {'form':form})
+        return render(self.request, self.template_name, {'form': form})
 
     def get_success_url(self):
-         return reverse('get_profile', kwargs={'pk': self.request.user.pk})
+        return reverse('get_profile', kwargs={'pk': self.request.user.pk})
 
 
 class ProfileUpdatePassword(LoginRequiredMixin, View):
@@ -262,12 +263,12 @@ class ProfileUpdatePassword(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         form = self.form_class(request.user)
-        return render(request, self.template_name, {'form':form})
-    
+        return render(request, self.template_name, {'form': form})
+
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.user, request.POST)
         if form.is_valid():
             user = form.save()
             update_session_auth_hash(request, user)
             return redirect('get_profile', request.user.id)
-        return render(request, self.template_name, {'form':form})
+        return render(request, self.template_name, {'form': form})
