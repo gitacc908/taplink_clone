@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title_page %}{% endblock %}
+
+{% block style-libs %}{% endblock %}
+
+{% block style %}{% endblock %}
+
+{% block content %}
+
+    <div class="box__wrap">
+        <div class="form__box">
+            <form method="post">
+                {% csrf_token %}
+                <div class="form__box-head">
+                    <h2 class="form__title">
+                        Для продолжения, введите номер телефона
+                    </h2>
+                </div>
+                <label class="form__input-wrap">
+                    <input name="phone" id='id_phone' type="text" class="form__input form__input-tel" required>  
+                </label>
+                {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                <button id="button_to_server"  class="form__btn" type="submit">
+                    Отправить код
+                </button>
+            </form>
+            
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $("#button_to_server").click(
+        function(){
+        let country_code = $(".iti__selected-dial-code");
+        let phone = $("#id_phone");
+        let phone_number = country_code.text() + phone.val();
+        $("#id_phone").val(phone_number.replace(/ /g,'')); 
+    });
+</script>
+{% endblock %}
