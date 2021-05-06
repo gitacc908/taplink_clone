@@ -4,7 +4,6 @@
 
 
 {% block content %}
-
 <form method="post" class="form-group form-group-sm col-sm-6" enctype='multipart/form-data'>
     {% csrf_token %}
     <p>Are you sure you want to delete <strong>"{{ object.title }}"?</strong></p>

@@ -16,9 +16,16 @@ class ProductImageForm(forms.ModelForm):
         fields = ('image',)
 
 
+class ProductCategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ('title',)
+
+
 class ProductMultiModelForm(MultiModelForm):
     form_classes = {'product': ProductForm,
-                    'product_image': ProductImageForm}
+                    'product_image': ProductImageForm,
+                    'product_category': ProductCategoryForm}
 
 
 class OrderForm(forms.ModelForm):

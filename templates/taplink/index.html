@@ -67,12 +67,12 @@
         <div class="container">
             <div class="taplink__box">
                 <div class="taplink__box-content ql-snow">                
-                    <!-- taplink deck display -->                    
-                    <div class="taplink__img">
+                    <!-- taplink deck display -->  
                         {% if obj.icon %}
+                    <div class="taplink__img">
                         <img src="{{ obj.icon.url }}" alt="">
-                        {% endif %}
                     </div>
+                        {% endif %}
                     <div class="taplink__text ql-editor">
                         {% if obj.body %}
                         {{obj.body|safe|linebreaks }}

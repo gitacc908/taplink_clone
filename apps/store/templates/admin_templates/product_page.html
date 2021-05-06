@@ -29,11 +29,12 @@
 		<h1>Your products</h1>
 		<div class="box-element my-box2">
 			<div class="cart-row">
-				<div style="flex:2"></div>
+				<div style="flex:2">Image</div>
 				<div style="flex:2"><strong>Item</strong></div>
 				<div style="flex:1"><strong>Price</strong></div>
 				<div style="flex:1"><strong>Quantity</strong></div>
 				<div style="flex:1"><strong>Collection</strong></div>
+				<div style="flex:1"><strong></strong></div>
 				<div style="flex:1"><strong></strong></div>
 			</div>
 			{% for item in products %}
@@ -65,10 +66,17 @@
 					<p class="quantity">{{item.quantity}}</p>
 				</div>
 				<div style="flex:1">
+				{% if item.category %}
 					<p class="quantity">{{item.category}}</p>
+				{% else %}
+					<p class="quantity">No collection</p>
+				{% endif %}
 				</div>
 				<div style="flex:1">
 					<a class="btn btn-outline-secondary add-btn update-cart" href="{% url 'delete_product' item.slug%}">Delete</a>
+				</div>
+				<div style="flex:1">
+					<a class="btn btn-outline-secondary add-btn update-cart" href="{% url 'update_product' item.slug%}">Update</a>
 				</div>
 			</div>
 			{% endfor %}

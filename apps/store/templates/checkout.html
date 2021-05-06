@@ -53,17 +53,20 @@
 
 <div class="col-lg-6">
 	<div class="box-element">
-		<a  class="btn btn-outline-dark" href="#">&#x2190; Back to Cart</a>
+		<a  class="btn btn-outline-dark" href="{% url 'cart' %}">&#x2190; Back to Cart</a>
 		<hr>
 		<h3>Order Summary</h3>
 		<hr>
 		{% for item in order.products.all %} 
-		<div class="cart-row">
+		<form class="cart-row" method='post' action="{% url 'change_qty' slug=item.product.slug%}">
+			 {% csrf_token %}
 			<div style="flex:2"><img class="row-image" src="{{item.product.main_image.url}}"></div>
 			<div style="flex:2"><p>{{item.product.title}}</p></div>
 			<div style="flex:1"><p>${{item.product.price|floatformat:2}}</p></div>
 			<div style="flex:1"><p>x{{item.quantity}}</p></div>
-		</div> 
+			<input class="form-control" type="text" name="product_qty">
+			<input type="submit" value="change qty" class="btn btn-secondary">
+		</form> 
 			{% endfor %}
 			<h5>Items:   {{order.get_cart_items}}</h5>
 		<h5>Total:   ${{order.get_total|floatformat:2}}</h5>

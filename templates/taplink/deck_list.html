@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block content %}
-{% for deck in page_object %}
+{% for deck in page_obj %}
 <div class="taplink__wrap">
     <div class="container">
         <div class="taplink__wrapper">
@@ -385,11 +385,11 @@
                 <span aria-hidden="true">&laquo;</span>
             </a>
         </li>
-        {% for n in page_object.paginator.page_range %}
+        {% for n in page_obj.paginator.page_range %}
 
-        {% if page_object.number == n %}
+        {% if page_obj.number == n %}
         <li class="page-item active"><a class="page-link" href="?page={{ n }}">{{n}}</a></li>
-        {% elif n > page_object.number|add:-3 and n < page_object.number|add:3 %} <li class="page-item"><a
+        {% elif n > page_obj.number|add:-3 and n < page_obj.number|add:3 %} <li class="page-item"><a
                 class="page-link" href="?page={{ n }}">{{ n }}</a></li>
             {% endif %}
             {% endfor %}
@@ -401,10 +401,6 @@
     </ul>
 </nav>
 {% endif %}
-{% endblock %}
-
-{% block pagination %}
-
 {% endblock %}
 {% block scripts %}
 <script>
