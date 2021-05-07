@@ -108,10 +108,11 @@ class StoreView(LoginRequiredMixin, View):
         search_query = request.GET.get('search', '')
         if search_query:
             products = Product.objects.filter(
-                Q(title__icontains=search_query)
+                title__icontains=search_query
             )
-            return render(request, 'product_filter.html', {'products': products,
-                                                           'order': order})
+            template_name = 'product_filter.html'
+            context = {'products': products,
+                       'order': order}
         elif request.GET.get('category_filter'):
             filter_with = get_object_or_404(
                 Category, title=request.GET['category_filter']
@@ -119,13 +120,16 @@ class StoreView(LoginRequiredMixin, View):
             products = Product.objects.filter(
                 category=filter_with, in_stock=True
             )
-            return render(request, self.template_name, {'products': products,
-                                                        'categories': categories,
-                                                        'order': order})
-        products = Product.objects.filter(in_stock=True)
-        return render(request, self.template_name, {'products': products,
-                                                    'categories': categories,
-                                                    'order': order})
+            template_name = 'store.html'
+            context = {'products': products,
+                       'categories': categories}
+        else:
+            products = Product.objects.filter(in_stock=True)
+            template_name = 'store.html'
+            context = {'products': products,
+                       'categories': categories,
+                       'order': order}
+        return render(request, template_name, context=context)
 
 
 class AddToCartView(LoginRequiredMixin, View):
@@ -137,29 +141,19 @@ class AddToCartView(LoginRequiredMixin, View):
             product=product,
             customer=request.user
         )
-        try:
-            order = Order.objects.get(
-                customer=request.user,
-                status=STATUS_NEW
-            )
-        except Order.DoesNotExist:
-            order = Order.objects.create(
-                customer=request.user,
-                defaults={'status': STATUS_NEW}
-            )
+        order, created = Order.objects.get_or_create(
+            customer=request.user,
+            status=STATUS_NEW
+        )
+        if created:
             order.products.add(cart_product)
             messages.info(request, 'Product was added and cart created.')
             return redirect('cart')
-        else:
-            if order.products.filter(product__slug=product.slug).exists():
-                cart_product.quantity += 1
-                cart_product.save(update_fields=['quantity'])
-                messages.info(request, 'Product amount increased.')
-                return redirect('cart')
-            else:
-                order.products.add(cart_product)
-                messages.info(request, 'Product was added.')
-                return redirect('cart')
+        if order.products.filter(product__slug=product.slug).exists():
+            cart_product.quantity += 1
+            cart_product.save(update_fields=['quantity'])
+            messages.info(request, 'Product amount increased.')
+            return redirect('cart')
 
 
 class RemoveFromCartView(LoginRequiredMixin, View):
