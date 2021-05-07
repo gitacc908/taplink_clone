@@ -1,9 +1,5 @@
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import HttpResponseNotFound
-from .models import Deck
-from .forms import (
-    AvatarForm, BodyForm, MessengerForm
-)
 from django.views import View
 from django.views.generic import CreateView
 from django.views.generic.edit import FormView, UpdateView
@@ -17,6 +13,11 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseRedirect
+
+from .models import Deck
+from .forms import (
+    AvatarForm, BodyForm, MessengerForm
+)
 
 
 class GetDeckWithLink(LoginRequiredMixin, DetailView):

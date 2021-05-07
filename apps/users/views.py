@@ -91,8 +91,7 @@ class SignUpView(FormView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('get_profile', kwargs={'pk':
-                                              self.request.user.pk})
+        return reverse('get_profile', kwargs={'pk': self.request.user.pk})
 
 
 class GetPhoneNumber(FormView):

@@ -26,11 +26,11 @@ class Deck(models.Model):
         verbose_name='description', null=True, blank=True
     )
     whatsapp = models.URLField(
-        max_length=255, verbose_name='whatsapp',
+        max_length=200, verbose_name='whatsapp',
         null=True, blank=True
     )
     telegram = models.URLField(
-        max_length=255, verbose_name='telegram',
+        max_length=200, verbose_name='telegram',
         null=True, blank=True
     )
 

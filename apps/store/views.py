@@ -97,10 +97,11 @@ class ProductPageView(LoginRequiredMixin, CartMixin, ListView):
 
 class StoreView(LoginRequiredMixin, View):
     login_url = 'login'
+    template_name = 'store.html'
 
     def get(self, request, *args, **kwargs):
         categories = Category.objects.all()
-        order, created = Order.objects.get_or_create(
+        order, _ = Order.objects.get_or_create(
             customer=request.user,
             status=STATUS_NEW
         )
@@ -118,13 +119,13 @@ class StoreView(LoginRequiredMixin, View):
             products = Product.objects.filter(
                 category=filter_with, in_stock=True
             )
-            return render(request, 'store.html', {'products': products,
-                                                  'categories': categories,
-                                                  'order': order})
+            return render(request, self.template_name, {'products': products,
+                                                        'categories': categories,
+                                                        'order': order})
         products = Product.objects.filter(in_stock=True)
-        return render(request, 'store.html', {'products': products,
-                                              'categories': categories,
-                                              'order': order})
+        return render(request, self.template_name, {'products': products,
+                                                    'categories': categories,
+                                                    'order': order})
 
 
 class AddToCartView(LoginRequiredMixin, View):
@@ -132,16 +133,20 @@ class AddToCartView(LoginRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         product = get_object_or_404(Product, slug=kwargs['slug'])
-        cart_product, created = CartProduct.objects.get_or_create(
+        cart_product, _ = CartProduct.objects.get_or_create(
             product=product,
             customer=request.user
         )
         try:
             order = Order.objects.get(
-                customer=request.user, status=STATUS_NEW
+                customer=request.user,
+                status=STATUS_NEW
             )
         except Order.DoesNotExist:
-            order = Order.objects.create(customer=request.user)
+            order = Order.objects.create(
+                customer=request.user,
+                defaults={'status': STATUS_NEW}
+            )
             order.products.add(cart_product)
             messages.info(request, 'Product was added and cart created.')
             return redirect('cart')
@@ -203,7 +208,9 @@ class CheckoutView(LoginRequiredMixin, CartMixin, FormView):
 
     def form_valid(self, form):
         order = get_object_or_404(
-            Order, customer=self.request.user, status=STATUS_NEW
+            Order,
+            customer=self.request.user,
+            status=STATUS_NEW
         )
         order.first_name = form.cleaned_data['first_name']
         order.last_name = form.cleaned_data['last_name']
@@ -221,8 +228,8 @@ class CheckoutView(LoginRequiredMixin, CartMixin, FormView):
             order.status = STATUS_COMPLETED
             order.save()
             self.request.session['order'] = order
-            return HttpResponse('Our manager will call ya!:)')
-        return super().form_valid(form)
+            messages.info('Our manager will call ya!:)')
+            return super().form_valid(form)
 
 
 class PaymentRedirect(LoginRequiredMixin, TemplateView):
