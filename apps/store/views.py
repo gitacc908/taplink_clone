@@ -129,6 +129,7 @@ class StoreView(LoginRequiredMixin, View):
             context = {'products': products,
                        'categories': categories,
                        'order': order}
+        print(context['products'])
         return render(request, template_name, context=context)
 
 
@@ -154,6 +155,9 @@ class AddToCartView(LoginRequiredMixin, View):
             cart_product.save(update_fields=['quantity'])
             messages.info(request, 'Product amount increased.')
             return redirect('cart')
+        messages.info(request, 'Product was added.')
+        order.products.add(cart_product)
+        return redirect('cart')
 
 
 class RemoveFromCartView(LoginRequiredMixin, View):
@@ -217,6 +221,7 @@ class CheckoutView(LoginRequiredMixin, CartMixin, FormView):
             order.status = STATUS_COMPLETED
             order.save()
             self.request.session['order'] = order
+            print('heu')
             return redirect(payment_url)
         else:
             order.status = STATUS_COMPLETED
