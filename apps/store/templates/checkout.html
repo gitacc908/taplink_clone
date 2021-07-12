@@ -57,7 +57,15 @@
 		<hr>
 		<h3>Order Summary</h3>
 		<hr>
-
+		{% for item in order.products.all %} 
+		<form class="cart-row">
+			 {% csrf_token %}
+			<div style="flex:2"><img class="row-image" src="{{item.product.main_image.url}}"></div>
+			<div style="flex:2"><p>{{item.product.title}}</p></div>
+			<div style="flex:1"><p>${{item.product.price|floatformat:2}}</p></div>
+			<div style="flex:1"><p>x{{item.quantity}}</p></div>
+		</form> 
+			{% endfor %}
 			<h5>Items:   {{order.get_cart_items}}</h5>
 		<h5>Total:   ${{order.get_total|floatformat:2}}</h5>
 	</div>

@@ -24,8 +24,8 @@ def get_url(purchase, request) -> str:
         "user_phone": purchase.phone,
         "options": {
             "callbacks": {
-                "result_url": CALLBACK_BASE_URL +
-                    "/api/purchases/payment_response/",
+                "result_url": CALLBACK_BASE_URL,
+                    # "/api/purchases/payment_response/",
                 "check_url": CALLBACK_BASE_URL,
                 "cancel_url": CALLBACK_BASE_URL +
                     '/store/',
@@ -44,6 +44,8 @@ def get_url(purchase, request) -> str:
                              headers={'X-Idempotency-Key': f'{purchase.id}'}
                              )
     data = json.loads(response.content)
+    print(data)
+    print(data['payment_page_url'])
     return data['payment_page_url']
 
 

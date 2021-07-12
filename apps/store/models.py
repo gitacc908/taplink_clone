@@ -25,7 +25,7 @@ class Category(models.Model):
         User, on_delete=models.CASCADE
     )
     title = models.CharField(
-        max_length=255, verbose_name='Name of the category'
+        max_length=255, verbose_name='Name of the category', null=True, blank=True
     )
     slug = AutoSlugField(
         populate_from='title', unique=True
@@ -110,7 +110,8 @@ class ProductImage(models.Model):
     )
     image = models.ImageField(
         verbose_name='product image',
-        upload_to='store_images/'
+        upload_to='store_images/',
+        null=True, blank=True
     )
 
     class Meta:

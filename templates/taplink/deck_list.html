@@ -71,6 +71,7 @@
             <button class="taplink__controll-btn" data-micromodal-trigger="modal-controll">
                 Управление
             </button>
+            
         </div>
     </div>
 </div>
@@ -138,9 +139,15 @@
                         </a>
                         {% endif %}
                     </div>
+                    
                 </div>
+  
                 <!-- taplink deck display -->
             </div>
+                <div class="taplink__box-btn-wrap">
+                    <a class="taplink__box-btn" href="{% url 'store' %}">
+                        Магазин</a>
+                </div>
             <div class="taplink__box-btn-wrap">
                 <button class="taplink__box-btn" data-micromodal-trigger="modal-controller">
                     Добавить блок

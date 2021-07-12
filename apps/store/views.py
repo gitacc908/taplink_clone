@@ -220,8 +220,7 @@ class CheckoutView(LoginRequiredMixin, CartMixin, FormView):
             payment_url = get_url(order, self.request)
             order.status = STATUS_COMPLETED
             order.save()
-            self.request.session['order'] = order
-            print('heu')
+            # self.request.session['order'] = order
             return redirect(payment_url)
         else:
             order.status = STATUS_COMPLETED
